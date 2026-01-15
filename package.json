@@ -1,0 +1,40 @@
+{
+  "name": "diffwatch",
+  "version": "1.0.0",
+  "description": "An app for watching git repository file changes.",
+  "author": "Sarfraz Ahmed <sarfraznawaz2005@gmail.com>",
+  "main": "dist/index.js",
+  "bin": {
+    "diffwatch": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest"
+  },
+  "keywords": [
+    "diff",
+    "watch",
+    "file",
+    "comparison",
+    "utility"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cheerio": "^1.1.2",
+    "diff2html": "^3.4.55",
+    "neo-neo-blessed": "^0.7.1",
+    "simple-git": "^3.30.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.8",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
