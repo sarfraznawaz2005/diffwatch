@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 
 export interface FileStatus {
   path: string;
-  status: 'modified' | 'added' | 'deleted' | 'unstaged' | 'unknown';
+  status: 'modified' | 'added' | 'deleted' | 'unstaged' | 'unknown' | 'unchanged';
   mtime?: Date;
 }
 
@@ -73,32 +73,61 @@ export class GitHandler {
     });
   }
 
-  async searchFiles(files: FileStatus[], term: string): Promise<FileStatus[]> {
-    if (!term || !term.trim()) return files;
+  async searchFiles(term: string): Promise<FileStatus[]> {
+    if (!term || !term.trim()) return [];
 
-    const results: FileStatus[] = [];
-    
-    // Process files in parallel for better performance
-    await Promise.all(files.map(async (file) => {
-      // Skip deleted files as they don't have content to search
-      if (file.status === 'deleted') return;
+    try {
+      // Use git grep to find files containing the term
+      // -i: ignore case
+      // -l: list filenames only
+      // -F: interpret pattern as a fixed string
+      // --untracked: include untracked files
+      const result = await this.git.raw(['grep', '-i', '-l', '-F', '--untracked', term.trim()]);
+      const matchedPaths = result.split('\n').map(p => p.trim()).filter(p => p !== '');
+      
+      if (matchedPaths.length === 0) return [];
 
-      try {
-        const content = await fs.readFile(file.path, 'utf8');
-        if (content.toLowerCase().includes(term.toLowerCase())) {
-          results.push(file);
+      // Get current status to identify which matched files are changed
+      const changedFiles = await this.getStatus();
+      const changedMap = new Map<string, FileStatus>();
+      changedFiles.forEach(f => changedMap.set(f.path, f));
+
+      const finalResults: FileStatus[] = [];
+      
+      for (const path of matchedPaths) {
+        if (changedMap.has(path)) {
+          finalResults.push(changedMap.get(path)!);
+        } else {
+          // It's an unchanged file
+          let mtime = new Date(0);
+          try {
+            const stat = await fs.stat(path);
+            mtime = stat.mtime;
+          } catch {}
+          
+          finalResults.push({
+            path,
+            status: 'unchanged',
+            mtime
+          });
         }
-      } catch (error) {
-        // Ignore errors (e.g., file not found, permission issues)
       }
-    }));
 
-    // Maintain original order (or close to it, but we filtered the list so strict order might need re-sorting if important, 
-    // but the original list was sorted. The results array will be populated out of order due to Promise.all.
-    // So we should re-sort or filter the original list based on results.)
-    
-    const matchedPaths = new Set(results.map(r => r.path));
-    return files.filter(f => matchedPaths.has(f.path));
+      // Sort results by mtime descending
+      return finalResults.sort((a, b) => {
+        const mtimeA = a.mtime || new Date(0);
+        const mtimeB = b.mtime || new Date(0);
+        const timeDiff = mtimeB.getTime() - mtimeA.getTime();
+        if (timeDiff !== 0) return timeDiff;
+        return a.path.localeCompare(b.path);
+      });
+    } catch (error: any) {
+      // git grep returns exit code 1 if no matches are found, which simple-git might throw as an error
+      if (error.message && (error.message.includes('exit code 1') || error.exitCode === 1)) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   async getDiff(filePath: string): Promise<string> {

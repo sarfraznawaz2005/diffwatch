@@ -162,13 +162,14 @@ async function main() {
   const updateFileList = async () => {
     // Preserve selected file path and scroll positions
     const selectedPath = currentFiles[fileList.selected]?.path;
-    const fileListScroll = fileList.scroll;
     const diffScroll = diffView.scrollTop;
 
-    let files = await gitHandler.getStatus();
+    let files: FileStatus[];
     
     if (currentSearchTerm) {
-      files = await gitHandler.searchFiles(files, currentSearchTerm);
+      files = await gitHandler.searchFiles(currentSearchTerm);
+    } else {
+      files = await gitHandler.getStatus();
     }
     
     currentFiles = files;
@@ -179,6 +180,7 @@ async function main() {
       else if (f.status === 'deleted') color = '{red-fg}';
       else if (f.status === 'modified') color = '{blue-fg}';
       else if (f.status === 'unstaged') color = '{white-fg}';
+      else if (f.status === 'unchanged') color = '{grey-fg}';
 
       return `${color}${f.path}{/}`;
     });
