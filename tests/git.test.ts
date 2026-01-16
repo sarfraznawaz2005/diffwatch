@@ -3,11 +3,12 @@ jest.mock('simple-git', () => ({
 }));
 jest.mock('fs/promises', () => ({
   stat: jest.fn(),
+  readFile: jest.fn(),
 }));
 
 import { simpleGit } from 'simple-git';
 import fs from 'fs/promises';
-import { GitHandler } from '../src/utils/git';
+import { GitHandler, FileStatus } from '../src/utils/git';
 
 describe('GitHandler', () => {
   let gitHandler: GitHandler;
@@ -22,6 +23,7 @@ describe('GitHandler', () => {
     };
     (simpleGit as jest.Mock).mockReturnValue(mockGit);
     (fs.stat as jest.Mock).mockResolvedValue({ mtime: new Date() });
+    (fs.readFile as jest.Mock).mockResolvedValue('');
     gitHandler = new GitHandler();
   });
 
@@ -97,5 +99,30 @@ describe('GitHandler', () => {
       'z-deleted.ts',
       'a-file.ts', // oldest
     ]);
+  });
+
+  it('should search files correctly', async () => {
+    const mockReadFile = jest.fn();
+    (fs.readFile as jest.Mock) = mockReadFile;
+    mockReadFile.mockImplementation((path: string) => {
+      if (path === 'match.ts') return Promise.resolve('this file contains match');
+      if (path === 'nomatch.ts') return Promise.resolve('this file contains nothing');
+      if (path === 'error.ts') return Promise.reject(new Error('File not found'));
+      return Promise.resolve('');
+    });
+
+    const files: FileStatus[] = [
+      { path: 'match.ts', status: 'modified' },
+      { path: 'nomatch.ts', status: 'modified' },
+      { path: 'deleted.ts', status: 'deleted' }, // Should be skipped
+      { path: 'error.ts', status: 'modified' }, // Should be handled gracefully
+    ];
+
+    const results = await gitHandler.searchFiles(files, 'match');
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].path).toBe('match.ts');
+    // Deleted file should not trigger readFile
+    expect(mockReadFile).not.toHaveBeenCalledWith('deleted.ts', expect.anything());
   });
 });

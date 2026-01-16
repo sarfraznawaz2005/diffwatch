@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 const Diff2Html = require('diff2html');
 
-export function formatDiffWithDiff2Html(diffString: string): string {
+export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string): string {
   if (!diffString || diffString.trim() === '') {
     return 'No changes detected.';
   }
@@ -41,7 +41,16 @@ export function formatDiffWithDiff2Html(diffString: string): string {
             content = $lineWrapper.text().trim();
           }
 
-          const fullLine = prefix + content;
+          let fullLine = prefix + content;
+
+          // Highlight search term if present
+          if (searchTerm && fullLine.toLowerCase().includes(searchTerm.toLowerCase())) {
+             const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+             // We need to know the base color to restore it.
+             // Added: 32, Deleted: 31, Normal: 37
+             const baseColor = isAdded ? '32' : (isDeleted ? '31' : '37');
+             fullLine = fullLine.replace(regex, `\x1b[43m\x1b[30m$1\x1b[0m\x1b[${baseColor}m`);
+          }
 
           if (isAdded) {
             blessedText += `\x1b[32m${fullLine}\x1b[0m\n`;

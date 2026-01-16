@@ -61,8 +61,31 @@ async function main() {
     tags: false,
   });
 
+  const searchBox = blessed.box({
+    top: 'center',
+    left: 'center',
+    width: '50%',
+    height: 3,
+    label: ' Search ',
+    border: { type: 'line' },
+    style: { border: { fg: 'yellow' } },
+    hidden: true,
+  });
+
+  const searchInput = blessed.textbox({
+    parent: searchBox,
+    top: 0,
+    left: 0,
+    width: '100%-2',
+    height: 1,
+    keys: true,
+    inputOnFocus: true,
+    style: { fg: 'white', bg: 'black' },
+  });
+
   screen.append(fileList);
   screen.append(diffView);
+  screen.append(searchBox);
 
   const updateBorders = () => {
     fileList.style.border.fg = screen.focused === fileList ? 'yellow' : 'white';
@@ -73,6 +96,7 @@ async function main() {
   let currentFiles: FileStatus[] = [];
   let lastSelectedPath: string | null = null;
   let diffUpdateTimeout: NodeJS.Timeout | null = null;
+  let currentSearchTerm: string = '';
 
   const scheduleDiffUpdate = () => {
     if (diffUpdateTimeout) clearTimeout(diffUpdateTimeout);
@@ -101,12 +125,13 @@ async function main() {
     const selectedFile = currentFiles[selectedIndex];
     if (selectedFile) {
       const diff = await gitHandler.getDiff(selectedFile.path);
-      const formattedDiff = formatDiffWithDiff2Html(diff);
+      const formattedDiff = formatDiffWithDiff2Html(diff, currentSearchTerm);
       const newLabel = ` Diff (${selectedFile.path}) `;
       const currentContent = diffView.content;
       const currentLabel = diffView.label;
 
       // Only update if content or label changed to reduce flickering
+      // Note: We also need to update if search term changed (implied by formattedDiff change)
       if (formattedDiff !== currentContent || newLabel !== currentLabel) {
         const savedScroll = diffView.scrollTop;
         const isNewFile = selectedFile.path !== lastSelectedPath;
@@ -140,7 +165,12 @@ async function main() {
     const fileListScroll = fileList.scroll;
     const diffScroll = diffView.scrollTop;
 
-    const files = await gitHandler.getStatus();
+    let files = await gitHandler.getStatus();
+    
+    if (currentSearchTerm) {
+      files = await gitHandler.searchFiles(files, currentSearchTerm);
+    }
+    
     currentFiles = files;
 
     const items = files.map(f => {
@@ -154,7 +184,9 @@ async function main() {
     });
 
     fileList.setItems(items);
-    fileList.setLabel(` Files (${files.length}) `);
+    
+    const labelTitle = currentSearchTerm ? ` Files (${files.length}) - Searching: "${currentSearchTerm}" ` : ` Files (${files.length}) `;
+    fileList.setLabel(labelTitle);
 
     if (items.length > 0) {
       // Restore selection by path if possible
@@ -167,12 +199,19 @@ async function main() {
       }
       await updateDiff();
     } else {
-      diffView.setContent('No changes detected.');
+      diffView.setContent(currentSearchTerm ? `No files match "${currentSearchTerm}".` : 'No changes detected.');
       diffView.setLabel(' Diff () ');
     }
 
-    // Restore scroll positions
-    fileList.scroll = fileListScroll;
+    // Restore scroll positions if reasonably possible (reset if list changed drastically)
+    // Actually, if we filter, the scroll position might be invalid.
+    // Ideally we keep it 0 if it was 0 or just let the select() call handle scrolling to the item.
+    // The previous implementation blindly restored scrollTop.
+    // If the list shrunk, select() should have brought it into view.
+    // We only explicitly restore if items.length > 0
+    // But setting scroll to previous value might be wrong if the list is now shorter.
+    // Safe to only restore diffView scroll as it depends on content, fileList is handled by select.
+    
     diffView.scrollTop = diffScroll;
 
     screen.render();
@@ -187,8 +226,35 @@ async function main() {
   });
 
   screen.key(['escape', 'q', 'C-c'], () => {
-    screen.destroy();
-    process.exit(0);
+    if (!searchBox.hidden) {
+      searchBox.hide();
+      screen.render();
+      fileList.focus();
+    } else {
+      screen.destroy();
+      process.exit(0);
+    }
+  });
+
+  screen.key(['s'], () => {
+    searchBox.show();
+    searchBox.setFront();
+    searchInput.setValue(currentSearchTerm);
+    searchInput.focus();
+    screen.render();
+  });
+
+  searchInput.on('submit', async () => {
+    currentSearchTerm = searchInput.value;
+    searchBox.hide();
+    fileList.focus();
+    await updateFileList();
+  });
+
+  searchInput.on('cancel', () => {
+    searchBox.hide();
+    fileList.focus();
+    screen.render();
   });
 
   screen.key(['tab'], () => {

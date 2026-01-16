@@ -73,6 +73,34 @@ export class GitHandler {
     });
   }
 
+  async searchFiles(files: FileStatus[], term: string): Promise<FileStatus[]> {
+    if (!term) return files;
+
+    const results: FileStatus[] = [];
+    
+    // Process files in parallel for better performance
+    await Promise.all(files.map(async (file) => {
+      // Skip deleted files as they don't have content to search
+      if (file.status === 'deleted') return;
+
+      try {
+        const content = await fs.readFile(file.path, 'utf8');
+        if (content.toLowerCase().includes(term.toLowerCase())) {
+          results.push(file);
+        }
+      } catch (error) {
+        // Ignore errors (e.g., file not found, permission issues)
+      }
+    }));
+
+    // Maintain original order (or close to it, but we filtered the list so strict order might need re-sorting if important, 
+    // but the original list was sorted. The results array will be populated out of order due to Promise.all.
+    // So we should re-sort or filter the original list based on results.)
+    
+    const matchedPaths = new Set(results.map(r => r.path));
+    return files.filter(f => matchedPaths.has(f.path));
+  }
+
   async getDiff(filePath: string): Promise<string> {
     try {
       const isUntracked = (await this.git.status()).not_added.includes(filePath);
