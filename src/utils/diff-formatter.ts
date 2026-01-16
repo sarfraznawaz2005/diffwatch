@@ -3,7 +3,7 @@ const Diff2Html = require('diff2html');
 
 export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string): string {
   if (!diffString || diffString.trim() === '') {
-    return 'No changes detected.';
+    return '';
   }
 
   try {
@@ -67,7 +67,7 @@ export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string)
       }
     });
 
-    return blessedText.trim() || 'No changes detected.';
+    return blessedText.trim();
   } catch (error) {
     return `Error formatting diff: ${error}`;
   }

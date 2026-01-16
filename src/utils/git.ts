@@ -141,7 +141,7 @@ export class GitHandler {
       }
 
       const diff = await this.git.diff(['HEAD', '--', filePath]);
-      return diff || 'No changes or file is new.';
+      return diff || '';
     } catch (error) {
       return `Error getting diff: ${error}`;
     }

@@ -64,6 +64,13 @@ describe('GitHandler', () => {
     expect(diff).toBe('+ added line\n- removed line');
   });
 
+  it('should return empty string if no diff', async () => {
+    mockGit.status.mockResolvedValue({ not_added: [] });
+    mockGit.diff.mockResolvedValue('');
+    const diff = await gitHandler.getDiff('file1.ts');
+    expect(diff).toBe('');
+  });
+
   it('should sort files by last modified descending then filename', async () => {
     // Mock fs.stat to return different mtimes
     const mockStat = jest.fn();

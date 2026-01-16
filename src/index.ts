@@ -127,7 +127,12 @@ async function main() {
       let content = '';
       let label = ` Diff (${selectedFile.path}) `;
 
-      if (selectedFile.status === 'unchanged') {
+      if (selectedFile.status !== 'unchanged' && selectedFile.status !== 'deleted') {
+        const diff = await gitHandler.getDiff(selectedFile.path);
+        content = formatDiffWithDiff2Html(diff, currentSearchTerm);
+      }
+
+      if (!content && selectedFile.status !== 'deleted') {
         content = await gitHandler.getFileContent(selectedFile.path);
         // Highlight search term in full content
         if (currentSearchTerm) {
@@ -135,9 +140,9 @@ async function main() {
           content = content.replace(regex, `\x1b[43m\x1b[30m$1\x1b[0m`);
         }
         label = ` File (${selectedFile.path}) `;
-      } else {
-        const diff = await gitHandler.getDiff(selectedFile.path);
-        content = formatDiffWithDiff2Html(diff, currentSearchTerm);
+      } else if (!content && selectedFile.status === 'deleted') {
+        content = chalk.red('File was deleted.');
+        label = ` Diff (${selectedFile.path}) `;
       }
 
       const currentContent = diffView.content;
