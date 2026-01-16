@@ -36,8 +36,13 @@ npm link
 Navigate to any Git repository and run:
 
 ```bash
-diffwatch
+diffwatch [options]
 ```
+
+### Options
+
+- `-p, --path <path>`: Path to the git repository (default: current directory)
+- `-h, --help`: Show help information
 
 The application will:
 1. Check if the current directory is a Git repository

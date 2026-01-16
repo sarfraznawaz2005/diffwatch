@@ -6,10 +6,44 @@ import { GitHandler, FileStatus } from './utils/git';
 import { formatDiffWithDiff2Html } from './utils/diff-formatter';
 
 async function main() {
-  const gitHandler = new GitHandler();
+  const args = process.argv.slice(2);
+  let repoPath = process.cwd();
+
+  const showHelp = () => {
+    console.log(`
+Usage: diffwatch [options]
+
+Options:
+  -p, --path <path>  Path to the git repository (default: current directory)
+  -h, --help         Show help information
+    `);
+    process.exit(0);
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '-h' || args[i] === '--help') {
+      showHelp();
+    } else if (args[i] === '-p' || args[i] === '--path') {
+      repoPath = args[i + 1];
+      if (!repoPath) {
+        console.error('Error: Path not provided for --path flag');
+        process.exit(1);
+      }
+      i++;
+    }
+  }
+
+  try {
+    process.chdir(repoPath);
+  } catch (err) {
+    console.error(`Error: Could not change directory to ${repoPath}`);
+    process.exit(1);
+  }
+
+  const gitHandler = new GitHandler(repoPath);
 
   if (!(await gitHandler.isRepo())) {
-    console.log(chalk.red('Error: Current directory is not a git repository.'));
+    console.log(chalk.red(`Error: ${repoPath} is not a git repository.`));
     process.exit(1);
   }
 
