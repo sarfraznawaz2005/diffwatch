@@ -120,4 +120,22 @@ describe('GitHandler', () => {
     ]));
     expect(mockGit.raw).toHaveBeenCalledWith(['grep', '-i', '-l', '-F', '--untracked', 'match']);
   });
+
+  it('should deduplicate search results', async () => {
+    // Return duplicate paths
+    mockGit.raw = jest.fn().mockResolvedValue('match.ts\nmatch.ts\nother.ts\nother.ts');
+    mockGit.status.mockResolvedValue({
+      modified: [],
+      deleted: [],
+      created: [],
+      not_added: [],
+      renamed: [],
+    });
+
+    const results = await gitHandler.searchFiles('term');
+    
+    expect(results).toHaveLength(2);
+    const paths = results.map(r => r.path).sort();
+    expect(paths).toEqual(['match.ts', 'other.ts']);
+  });
 });

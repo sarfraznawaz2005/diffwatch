@@ -83,7 +83,7 @@ export class GitHandler {
       // -F: interpret pattern as a fixed string
       // --untracked: include untracked files
       const result = await this.git.raw(['grep', '-i', '-l', '-F', '--untracked', term.trim()]);
-      const matchedPaths = result.split('\n').map(p => p.trim()).filter(p => p !== '');
+      const matchedPaths = [...new Set(result.split('\n').map(p => p.trim()).filter(p => p !== ''))];
       
       if (matchedPaths.length === 0) return [];
 
