@@ -1,6 +1,6 @@
 {
   "name": "diffwatch",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An app for watching git repository file changes.",
   "author": "Sarfraz Ahmed <sarfraznawaz2005@gmail.com>",
   "main": "dist/index.js",
