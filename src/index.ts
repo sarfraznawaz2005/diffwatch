@@ -244,10 +244,11 @@ async function main() {
     screen.render();
   });
 
-  searchInput.on('submit', async () => {
-    currentSearchTerm = searchInput.value;
+  searchInput.on('submit', async (value: string) => {
+    currentSearchTerm = (value || '').trim();
     searchBox.hide();
     fileList.focus();
+    // Force immediate update
     await updateFileList();
   });
 

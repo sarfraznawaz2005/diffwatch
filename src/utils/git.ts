@@ -74,7 +74,7 @@ export class GitHandler {
   }
 
   async searchFiles(files: FileStatus[], term: string): Promise<FileStatus[]> {
-    if (!term) return files;
+    if (!term || !term.trim()) return files;
 
     const results: FileStatus[] = [];
     
