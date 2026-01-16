@@ -124,20 +124,32 @@ async function main() {
     const selectedIndex = fileList.selected;
     const selectedFile = currentFiles[selectedIndex];
     if (selectedFile) {
-      const diff = await gitHandler.getDiff(selectedFile.path);
-      const formattedDiff = formatDiffWithDiff2Html(diff, currentSearchTerm);
-      const newLabel = ` Diff (${selectedFile.path}) `;
+      let content = '';
+      let label = ` Diff (${selectedFile.path}) `;
+
+      if (selectedFile.status === 'unchanged') {
+        content = await gitHandler.getFileContent(selectedFile.path);
+        // Highlight search term in full content
+        if (currentSearchTerm) {
+          const regex = new RegExp(`(${currentSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+          content = content.replace(regex, `\x1b[43m\x1b[30m$1\x1b[0m`);
+        }
+        label = ` File (${selectedFile.path}) `;
+      } else {
+        const diff = await gitHandler.getDiff(selectedFile.path);
+        content = formatDiffWithDiff2Html(diff, currentSearchTerm);
+      }
+
       const currentContent = diffView.content;
       const currentLabel = diffView.label;
 
       // Only update if content or label changed to reduce flickering
-      // Note: We also need to update if search term changed (implied by formattedDiff change)
-      if (formattedDiff !== currentContent || newLabel !== currentLabel) {
+      if (content !== currentContent || label !== currentLabel) {
         const savedScroll = diffView.scrollTop;
         const isNewFile = selectedFile.path !== lastSelectedPath;
 
-        diffView.setContent(formattedDiff);
-        diffView.setLabel(newLabel);
+        diffView.setContent(content);
+        diffView.setLabel(label);
 
         if (isNewFile) {
           diffView.scrollTo(0);

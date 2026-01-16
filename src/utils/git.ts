@@ -146,4 +146,12 @@ export class GitHandler {
       return `Error getting diff: ${error}`;
     }
   }
+
+  async getFileContent(filePath: string): Promise<string> {
+    try {
+      return await fs.readFile(filePath, 'utf8');
+    } catch (error) {
+      return `Error reading file: ${error}`;
+    }
+  }
 }
