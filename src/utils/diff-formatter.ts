@@ -58,11 +58,6 @@ export function formatDiffWithDiff2Html(diffString: string): string {
       }
     });
 
-    $('.d2h-file-header').each((_, header) => {
-      const fileText = $(header).text().trim();
-      blessedText += `\x1b[33m${fileText}\x1b[0m\n`;
-    });
-
     return blessedText.trim() || 'No changes detected.';
   } catch (error) {
     return `Error formatting diff: ${error}`;
