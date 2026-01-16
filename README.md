@@ -36,12 +36,15 @@ npm link
 Navigate to any Git repository and run:
 
 ```bash
-diffwatch [options]
+diffwatch [path] [options]
 ```
+
+### Arguments
+
+- `path`: Path to the git repository (default: current directory)
 
 ### Options
 
-- `-p, --path <path>`: Path to the git repository (default: current directory)
 - `-h, --help`: Show help information
 
 The application will:

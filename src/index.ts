@@ -11,26 +11,30 @@ async function main() {
 
   const showHelp = () => {
     console.log(`
-Usage: diffwatch [options]
+Usage: diffwatch [path] [options]
+
+Arguments:
+  path               Path to the git repository (default: current directory)
 
 Options:
-  -p, --path <path>  Path to the git repository (default: current directory)
   -h, --help         Show help information
     `);
     process.exit(0);
   };
 
+  const positionalArgs = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '-h' || args[i] === '--help') {
       showHelp();
-    } else if (args[i] === '-p' || args[i] === '--path') {
-      repoPath = args[i + 1];
-      if (!repoPath) {
-        console.error('Error: Path not provided for --path flag');
-        process.exit(1);
-      }
-      i++;
+    } else if (args[i].startsWith('-')) {
+      // Ignore unknown flags or handle them if needed
+    } else {
+      positionalArgs.push(args[i]);
     }
+  }
+
+  if (positionalArgs.length > 0) {
+    repoPath = positionalArgs[0];
   }
 
   try {
