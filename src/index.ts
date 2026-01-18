@@ -51,10 +51,19 @@ Options:
     process.exit(1);
   }
 
+  // Force xterm-256color to encourage better mouse support on Windows terminals
+  if (process.platform === 'win32' && !process.env.TERM) {
+     process.env.TERM = 'xterm-256color';
+  }
+
   const screen = blessed.screen({
     smartCSR: true,
     title: 'diffwatch',
+    mouse: true,
   });
+
+  // Explicitly enable mouse tracking
+  screen.program.enableMouse();
 
   const fileList = blessed.list({
     top: 0,
@@ -142,6 +151,43 @@ Options:
       await updateDiff();
     }, 150); // 150ms debounce
   };
+
+  const handleScroll = (direction: 'up' | 'down') => {
+    if (screen.focused === fileList) {
+      if (direction === 'up') {
+        fileList.up(1);
+      } else {
+        fileList.down(1);
+      }
+      scheduleDiffUpdate();
+      screen.render();
+    } else if (screen.focused === diffView) {
+      const scrollAmount = direction === 'up' ? -2 : 2;
+      diffView.scroll(scrollAmount);
+      screen.render();
+    }
+  };
+
+  // Remove default wheel listeners to enforce "scroll focused only" behavior
+  fileList.removeAllListeners('wheeldown');
+  fileList.removeAllListeners('wheelup');
+  diffView.removeAllListeners('wheeldown');
+  diffView.removeAllListeners('wheelup');
+
+  // Attach custom scroll handlers to widgets (captures wheel even if hovering specific widget)
+  // We use widget-level listeners now that screen.mouse is true.
+  // We attach to both to ensure the event is caught regardless of where the mouse is.
+  // The handleScroll function will then decide WHAT to scroll based on focus.
+  
+  fileList.on('wheeldown', () => handleScroll('down'));
+  fileList.on('wheelup', () => handleScroll('up'));
+  
+  diffView.on('wheeldown', () => handleScroll('down'));
+  diffView.on('wheelup', () => handleScroll('up'));
+
+  // Also listen on screen for events that might miss the widgets (margins, borders)
+  screen.on('wheeldown', () => handleScroll('down'));
+  screen.on('wheelup', () => handleScroll('up'));
 
   const openInEditor = (filePath: string) => {
     try {
