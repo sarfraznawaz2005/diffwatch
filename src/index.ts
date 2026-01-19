@@ -153,7 +153,7 @@ Options:
     left: 0,
     width: '100%',
     height: 1,
-    content: chalk.cyan(' enter') + ': Open file | ' + chalk.cyan('s') + ': Search | ' + chalk.cyan('r') + ': Revert file | ' + chalk.cyan('tab') + ': Switch panes | ' + chalk.cyan('q/esc') + ': Quit ',
+    content: chalk.green('←→') + ' Switch |' + chalk.green(' ⏎') + ' Open | ' + chalk.green('S') + ' Search | ' + chalk.green('R') + ' Revert | ' + chalk.green('Q') + ' Quit ',
   });
 
   // Adjust footer to align with the panes
