@@ -297,13 +297,13 @@ Options:
     const diffScroll = diffView.scrollTop;
 
     let files: FileStatus[];
-    
+
     if (currentSearchTerm) {
       files = await gitHandler.searchFiles(currentSearchTerm);
     } else {
       files = await gitHandler.getStatus();
     }
-    
+
     currentFiles = files;
 
     const items = files.map(f => {
@@ -318,7 +318,7 @@ Options:
     });
 
     fileList.setItems(items);
-    
+
     const labelTitle = currentSearchTerm ? `Files (${files.length}) - Searching: "${currentSearchTerm}"` : `Files (${files.length})`;
     fileList.setLabel(labelTitle);
 
@@ -333,6 +333,8 @@ Options:
       }
       await updateDiff();
     } else {
+      // Clear the file list when there are no files
+      fileList.clearItems();
       diffView.setContent(currentSearchTerm ? `No files match "${currentSearchTerm}".` : 'No changes detected.');
       diffView.setLabel(' Diff () ');
     }
@@ -345,7 +347,7 @@ Options:
     // We only explicitly restore if items.length > 0
     // But setting scroll to previous value might be wrong if the list is now shorter.
     // Safe to only restore diffView scroll as it depends on content, fileList is handled by select.
-    
+
     diffView.scrollTop = diffScroll;
 
     screen.render();

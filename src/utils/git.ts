@@ -24,30 +24,40 @@ export class GitHandler {
 
   async getStatus(): Promise<FileStatus[]> {
     const status: StatusResult = await this.git.status();
-    const files: FileStatus[] = [];
+    const uniqueFiles = new Map<string, FileStatus>();
 
+    // Process each status category and add to map (which prevents duplicates)
     status.modified.forEach(path => {
-      files.push({ path, status: 'modified' });
+      uniqueFiles.set(path, { path, status: 'modified' });
     });
 
     status.deleted.forEach(path => {
-      files.push({ path, status: 'deleted' });
+      // Only add if not already in the map
+      if (!uniqueFiles.has(path)) {
+        uniqueFiles.set(path, { path, status: 'deleted' });
+      }
     });
 
     status.created.forEach(path => {
-      files.push({ path, status: 'added' });
+      // Only add if not already in the map
+      if (!uniqueFiles.has(path)) {
+        uniqueFiles.set(path, { path, status: 'added' });
+      }
     });
 
     status.not_added.forEach(path => {
-      files.push({ path, status: 'unstaged' });
+      // Only add if not already in the map
+      if (!uniqueFiles.has(path)) {
+        uniqueFiles.set(path, { path, status: 'unstaged' });
+      }
     });
 
     status.renamed.forEach(r => {
-      files.push({ path: r.to, status: 'added' });
+      // Only add if not already in the map
+      if (!uniqueFiles.has(r.to)) {
+        uniqueFiles.set(r.to, { path: r.to, status: 'added' });
+      }
     });
-
-    const uniqueFiles = new Map<string, FileStatus>();
-    files.forEach(f => uniqueFiles.set(f.path, f));
 
     // Add last modified time for sorting
     const fileArray = Array.from(uniqueFiles.values());
