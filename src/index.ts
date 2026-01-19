@@ -153,6 +153,7 @@ Options:
     left: 0,
     width: '100%',
     height: 1,
+    align: 'center',
     content: chalk.green('←→') + ' Switch |' + chalk.green(' ⏎') + ' Open | ' + chalk.green('S') + ' Search | ' + chalk.green('R') + ' Revert | ' + chalk.green('Q') + ' Quit ',
   });
 
