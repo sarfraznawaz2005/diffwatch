@@ -69,8 +69,8 @@ Options:
     top: 0,
     left: 0,
     width: '30%',
-    height: '100%',
-    label: ' Files (0) ',
+    height: '99%',
+    label: 'Files (0)',
     keys: true,
     vi: true,
     mouse: true,
@@ -91,7 +91,7 @@ Options:
     top: 0,
     left: '30%',
     width: '70%',
-    height: '100%',
+    height: '99%',
     label: ' Diff () ',
     keys: true,
     vi: true,
@@ -130,9 +130,40 @@ Options:
     style: { fg: 'white', bg: 'black' },
   });
 
+  // Confirmation dialog for revert
+  const confirmDialog = blessed.box({
+    top: 'center',
+    left: 'center',
+    width: '38%',
+    label: ' Confirm Revert ',
+    height: 3,
+    content: 'Press ENTER key to confirm revert or ESC to cancel.',
+    border: { type: 'line' },
+    style: {
+      fg: 'yellow',
+      bg: 'black',
+      border: { fg: 'yellow' }
+    },
+    hidden: true,
+  });
+
+  // Footer box to show shortcuts - aligned with the panes
+  const footer = blessed.box({
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 1,
+    content: chalk.cyan(' enter') + ': Open file | ' + chalk.cyan('s') + ': Search | ' + chalk.cyan('r') + ': Revert file | ' + chalk.cyan('tab') + ': Switch panes | ' + chalk.cyan('q/esc') + ': Quit ',
+  });
+
+  // Adjust footer to align with the panes
+  // Note: We'll adjust this after screen initialization
+
   screen.append(fileList);
   screen.append(diffView);
   screen.append(searchBox);
+  screen.append(confirmDialog);
+  screen.append(footer);
 
   const updateBorders = () => {
     fileList.style.border.fg = screen.focused === fileList ? 'yellow' : 'white';
@@ -288,7 +319,7 @@ Options:
 
     fileList.setItems(items);
     
-    const labelTitle = currentSearchTerm ? ` Files (${files.length}) - Searching: "${currentSearchTerm}" ` : ` Files (${files.length}) `;
+    const labelTitle = currentSearchTerm ? `Files (${files.length}) - Searching: "${currentSearchTerm}"` : `Files (${files.length})`;
     fileList.setLabel(labelTitle);
 
     if (items.length > 0) {
@@ -333,6 +364,11 @@ Options:
       searchBox.hide();
       screen.render();
       fileList.focus();
+    } else if (!confirmDialog.hidden) {
+      // Close the confirmation dialog if it's open
+      confirmDialog.hide();
+      fileList.focus();
+      screen.render();
     } else {
       screen.destroy();
       process.exit(0);
@@ -386,6 +422,45 @@ Options:
     if (selectedFile) {
       openInEditor(selectedFile.path);
     }
+  });
+
+  // Handle revert key press
+  screen.key(['r'], async () => {
+    const selectedIndex = fileList.selected;
+    const selectedFile = currentFiles[selectedIndex];
+    if (selectedFile) {
+      confirmDialog.setContent(`Press SPACE key to confirm revert or ESC to cancel.`);
+      confirmDialog.show();
+      confirmDialog.focus();
+      screen.render();
+    }
+  });
+
+  // Handle confirmation dialog response with SPACE key
+  confirmDialog.key(['space'], async () => {
+    confirmDialog.hide();
+    const selectedIndex = fileList.selected;
+    const selectedFile = currentFiles[selectedIndex];
+    if (selectedFile) {
+      try {
+        await gitHandler.revertFile(selectedFile.path);
+        console.log(chalk.green(`File ${selectedFile.path} reverted successfully.`));
+        // Refresh the file list after reverting
+        await updateFileList();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(chalk.red(`Error reverting file: ${errorMessage}`));
+      }
+    }
+    fileList.focus();
+    screen.render();
+  });
+
+  // Handle cancellation with ESC key
+  confirmDialog.key(['escape', 'q'], () => {
+    confirmDialog.hide();
+    fileList.focus();
+    screen.render();
   });
 
   setInterval(async () => {

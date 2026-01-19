@@ -154,4 +154,13 @@ export class GitHandler {
       return `Error reading file: ${error}`;
     }
   }
+
+  async revertFile(filePath: string): Promise<void> {
+    try {
+      // Restore the specific file to HEAD version
+      await this.git.raw(['restore', filePath]);
+    } catch (error) {
+      throw new Error(`Could not revert file: ${error}`);
+    }
+  }
 }
