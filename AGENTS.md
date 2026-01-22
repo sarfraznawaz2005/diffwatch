@@ -187,3 +187,15 @@ describe('GitHandler', () => {
 - [ ] Dependencies justified and minimal
 - [ ] Documentation updated if public API changes</content>
 <parameter name="filePath">D:\SystemFolders\Downloads\Dev\node\diffwatch\AGENTS.md
+
+<!-- GENERAL-RULES-RULES-START -->
+
+## You must always follow these rules:
+
+- If you are unsure about any requirement, behavior, or implementation detail, ask clarifying questions **before** writing code.
+- At every step, provide a **high-level explanation** of what changes were made and why.
+- After implementing changes or new features, always provide a list of **suggestions or improvements**, even if they differ from the user's original request.
+- If the user requests a change or feature that is an **anti-pattern** or violates well-established best practices, clearly explain the issue and ask for confirmation before proceeding.
+- Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
+
+<!-- GENERAL-RULES-RULES-END -->
