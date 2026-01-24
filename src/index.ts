@@ -198,8 +198,8 @@ const searchBox = blessed.box({
 
   const notificationBox = blessed.box({
     top: 'center',
-    left: '40%', // Center of right pane (30% + 70%/2 = 65%)
-    width: '50%',
+    left: '45%', // Center of right pane (30% + 70%/2 = 65%)
+    width: '38%',
     height: 3,
     label: ' Notification ',
     border: { type: 'line' },
