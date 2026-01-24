@@ -212,6 +212,7 @@ Options:
   });
 
   const showNotification = (message: string, color: 'green' | 'red' = 'green') => {
+    const previouslyFocused = screen.focused;
     notificationBox.setContent(message);
     notificationBox.style = {
       fg: color,
@@ -224,7 +225,12 @@ Options:
 
     setTimeout(() => {
       notificationBox.hide();
-      fileList.focus();
+      if (previouslyFocused && previouslyFocused !== notificationBox) {
+        previouslyFocused.focus();
+      } else {
+        fileList.focus();
+      }
+      updateBorders();
       screen.render();
     }, 3000);
   };
@@ -486,7 +492,8 @@ Options:
     isUpdatingList = false;
   };
 
-  screen.key(['escape', 'q', 'C-c'], () => {
+screen.key(['escape', 'q', 'C-c'], () => {
+    clearInterval(updateInterval);
     if (!searchBox.hidden) {
       searchBox.hide();
       screen.render();
@@ -593,15 +600,45 @@ Options:
     screen.render();
   });
 
-  setInterval(async () => {
-    await updateFileList();
-    await updateBranch();
-  }, 5000);
-
-  await updateBranch();
+await updateBranch();
   await updateFileList();
   fileList.focus();
   updateBorders();
+
+  // Set up periodic updates to detect new git changes
+  const updateInterval = setInterval(async () => {
+    const currentlyFocused = screen.focused;
+    const wasFileListFocused = currentlyFocused === fileList;
+    
+    await updateBranch();
+    await updateFileList();
+    
+    // Restore focus to the same pane it was on before the update
+    if (wasFileListFocused) {
+      fileList.focus();
+    } else if (currentlyFocused === diffView) {
+      diffView.focus();
+    }
+    updateBorders();
+  }, 2000); // Check for changes every 2 seconds
+
+  // Clean up interval on exit
+  screen.key(['escape', 'q', 'C-c'], () => {
+    clearInterval(updateInterval);
+    if (!searchBox.hidden) {
+      searchBox.hide();
+      screen.render();
+      fileList.focus();
+    } else if (!confirmDialog.hidden) {
+      // Close the confirmation dialog if it's open
+      confirmDialog.hide();
+      fileList.focus();
+      screen.render();
+    } else {
+      screen.destroy();
+      process.exit(0);
+    }
+  });
 }
 
 main().catch(err => {
