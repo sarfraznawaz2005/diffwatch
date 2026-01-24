@@ -15,7 +15,7 @@ async function main() {
 
   const showHelp = () => {
     console.log(`
-Usage: diffwatch [path] [options]
+Usage: diffwatch [path]
 
 Arguments:
   path               Path to the git repository (default: current directory)
