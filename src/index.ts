@@ -259,6 +259,14 @@ Options:
   const updateDiff = async () => {
     const selectedIndex = fileList.selected;
     const selectedFile = currentFiles[selectedIndex];
+    if (!selectedFile) {
+      // No valid file selected, clear diff view
+      diffView.setContent('Select a file to view diff.');
+      diffView.setLabel(' Diff () ');
+      lastSelectedPath = null;
+      screen.render();
+      return;
+    }
     if (selectedFile) {
       let content = '';
       let label = ` Diff (${selectedFile.path}) `;
@@ -313,9 +321,7 @@ Options:
   };
 
   const updateFileList = async () => {
-    // Preserve selected file path and scroll positions
     const selectedPath = currentFiles[fileList.selected]?.path;
-    const diffScroll = diffView.scrollTop;
 
     let files: FileStatus[];
 
@@ -327,7 +333,7 @@ Options:
 
     currentFiles = files;
 
-    const items = files.map(f => {
+    const items = files.map((f) => {
       let color = '{white-fg}';
       if (f.status === 'added') color = '{green-fg}';
       else if (f.status === 'deleted') color = '{red-fg}';
@@ -347,6 +353,8 @@ Options:
       // Restore selection by path if possible
       const newSelectedIndex = selectedPath ? currentFiles.findIndex(f => f.path === selectedPath) : -1;
       fileList.select(newSelectedIndex >= 0 ? newSelectedIndex : 0);
+      // Reset lastSelectedPath to force diff update even if path matches (file status may have changed)
+      lastSelectedPath = null;
       // Cancel any pending diff update and update immediately
       if (diffUpdateTimeout) {
         clearTimeout(diffUpdateTimeout);
@@ -358,18 +366,8 @@ Options:
       fileList.clearItems();
       diffView.setContent(currentSearchTerm ? `No files match "${currentSearchTerm}".` : 'No changes detected.');
       diffView.setLabel(' Diff () ');
+      lastSelectedPath = null;
     }
-
-    // Restore scroll positions if reasonably possible (reset if list changed drastically)
-    // Actually, if we filter, the scroll position might be invalid.
-    // Ideally we keep it 0 if it was 0 or just let the select() call handle scrolling to the item.
-    // The previous implementation blindly restored scrollTop.
-    // If the list shrunk, select() should have brought it into view.
-    // We only explicitly restore if items.length > 0
-    // But setting scroll to previous value might be wrong if the list is now shorter.
-    // Safe to only restore diffView scroll as it depends on content, fileList is handled by select.
-
-    diffView.scrollTop = diffScroll;
 
     screen.render();
   };
