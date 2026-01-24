@@ -179,10 +179,10 @@ const searchBox = blessed.box({
     style: { fg: 'white', bg: 'black' },
   });
 
-  // Confirmation dialog for revert
+// Confirmation dialog for revert
   const confirmDialog = blessed.box({
     top: 'center',
-    left: '40%', // Center of right pane (30% + 70%/2 = 65%)
+    left: '45%', // Center of right pane (30% + 70%/2 = 65%)
     width: '38%',
     label: ' Confirm Revert ',
     height: 3,
@@ -492,22 +492,7 @@ const searchBox = blessed.box({
     isUpdatingList = false;
   };
 
-screen.key(['escape', 'q', 'C-c'], () => {
-    clearInterval(updateInterval);
-    if (!searchBox.hidden) {
-      searchBox.hide();
-      screen.render();
-      fileList.focus();
-    } else if (!confirmDialog.hidden) {
-      // Close the confirmation dialog if it's open
-      confirmDialog.hide();
-      fileList.focus();
-      screen.render();
-    } else {
-      screen.destroy();
-      process.exit(0);
-    }
-  });
+
 
   screen.key(['s'], () => {
     searchBox.show();
@@ -562,22 +547,20 @@ screen.key(['escape', 'q', 'C-c'], () => {
     }
   });
 
-  // Handle revert key press
+// Handle revert key press
   screen.key(['r'], async () => {
     const selectedIndex = fileList.selected;
     const selectedFile = currentFiles[selectedIndex];
     if (selectedFile) {
-      confirmDialog.setContent(`Press SPACE key to confirm revert or ESC to cancel.`);
       confirmDialog.show();
+      confirmDialog.setFront();
       confirmDialog.focus();
       screen.render();
     }
   });
 
-  // Handle confirmation dialog response with SPACE key
+  // Handle dialog keys
   confirmDialog.key(['space'], async () => {
-    confirmDialog.hide();
-
     const selectedIndex = fileList.selected;
     const selectedFile = currentFiles[selectedIndex];
     if (selectedFile) {
@@ -590,11 +573,12 @@ screen.key(['escape', 'q', 'C-c'], () => {
         showNotification(`Error reverting file: ${errorMessage}`, 'red');
       }
     }
+    confirmDialog.hide();
     fileList.focus();
+    screen.render();
   });
 
-  // Handle cancellation with ESC key
-  confirmDialog.key(['escape', 'q'], () => {
+  confirmDialog.key(['escape'], () => {
     confirmDialog.hide();
     fileList.focus();
     screen.render();
@@ -623,17 +607,19 @@ await updateBranch();
   }, 2000); // Check for changes every 2 seconds
 
   // Clean up interval on exit
-  screen.key(['escape', 'q', 'C-c'], () => {
+screen.key(['escape', 'q', 'C-c'], () => {
     clearInterval(updateInterval);
     if (!searchBox.hidden) {
       searchBox.hide();
       screen.render();
       fileList.focus();
+      return false;
     } else if (!confirmDialog.hidden) {
       // Close the confirmation dialog if it's open
       confirmDialog.hide();
       fileList.focus();
       screen.render();
+      return false;
     } else {
       screen.destroy();
       process.exit(0);
