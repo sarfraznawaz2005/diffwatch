@@ -5,9 +5,9 @@ import { spawn } from 'child_process';
 import { GitHandler, FileStatus } from './utils/git';
 import { formatDiffWithDiff2Html } from './utils/diff-formatter';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
 
-const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+const packageJson = JSON.parse(readFileSync(join(dirname(__filename), '..', 'package.json'), 'utf-8'));
 
 async function main() {
   const args = process.argv.slice(2);
@@ -186,7 +186,7 @@ Options:
     width: '38%',
     label: ' Confirm Revert ',
     height: 3,
-    content: 'Press ENTER key to confirm revert or ESC to cancel.',
+    content: 'Press SPACE key to confirm revert or ESC to cancel.',
     border: { type: 'line' },
     style: {
       fg: 'yellow',
@@ -195,6 +195,39 @@ Options:
     },
     hidden: true,
   });
+
+  const notificationBox = blessed.box({
+    top: 'center',
+    left: 'center',
+    width: '50%',
+    height: 3,
+    label: ' Notification ',
+    border: { type: 'line' },
+    style: {
+      fg: 'green',
+      bg: 'black',
+      border: { fg: 'green' }
+    },
+    hidden: true,
+  });
+
+  const showNotification = (message: string, color: 'green' | 'red' = 'green') => {
+    notificationBox.setContent(message);
+    notificationBox.style = {
+      fg: color,
+      bg: 'black',
+      border: { fg: color }
+    };
+    notificationBox.show();
+    notificationBox.setFront();
+    screen.render();
+
+    setTimeout(() => {
+      notificationBox.hide();
+      fileList.focus();
+      screen.render();
+    }, 3000);
+  };
 
   // Branch display in bottom right
   const branchBox = blessed.box({
@@ -221,6 +254,7 @@ Options:
   screen.append(fileList);
   screen.append(diffView);
   screen.append(searchBox);
+  screen.append(notificationBox);
   screen.append(confirmDialog);
   screen.append(footer);
   screen.append(branchBox);
@@ -500,13 +534,17 @@ Options:
   });
 
   screen.key(['left'], () => {
-    fileList.focus();
-    updateBorders();
+    if (screen.focused !== fileList) {
+      fileList.focus();
+      updateBorders();
+    }
   });
 
   screen.key(['right'], () => {
-    diffView.focus();
-    updateBorders();
+    if (screen.focused !== diffView) {
+      diffView.focus();
+      updateBorders();
+    }
   });
 
   screen.key(['enter'], () => {
@@ -532,19 +570,20 @@ Options:
   // Handle confirmation dialog response with SPACE key
   confirmDialog.key(['space'], async () => {
     confirmDialog.hide();
+
     const selectedIndex = fileList.selected;
     const selectedFile = currentFiles[selectedIndex];
     if (selectedFile) {
       try {
         await gitHandler.revertFile(selectedFile.path);
-        // Refresh the file list after reverting
+        showNotification(`File ${selectedFile.path} reverted successfully.`, 'green');
         await updateFileList();
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        showNotification(`Error reverting file: ${errorMessage}`, 'red');
       }
     }
     fileList.focus();
-    screen.render();
   });
 
   // Handle cancellation with ESC key
