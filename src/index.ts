@@ -4,6 +4,10 @@ import chalk from 'chalk';
 import { spawn } from 'child_process';
 import { GitHandler, FileStatus } from './utils/git';
 import { formatDiffWithDiff2Html } from './utils/diff-formatter';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
 
 async function main() {
   const args = process.argv.slice(2);
@@ -18,7 +22,13 @@ Arguments:
 
 Options:
   -h, --help         Show help information
+  -v, --version      Show version information
     `);
+    process.exit(0);
+  };
+
+  const showVersion = () => {
+    console.log(`diffwatch v${packageJson.version}`);
     process.exit(0);
   };
 
@@ -26,6 +36,8 @@ Options:
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '-h' || args[i] === '--help') {
       showHelp();
+    } else if (args[i] === '-v' || args[i] === '--version') {
+      showVersion();
     } else if (args[i].startsWith('-')) {
       // Ignore unknown flags or handle them if needed
     } else {
@@ -65,7 +77,7 @@ Options:
   // Explicitly enable mouse tracking
   screen.program.enableMouse();
 
-  const fileList = blessed.list({
+  let fileList: any = blessed.list({
     top: 0,
     left: 0,
     width: '30%',
@@ -86,6 +98,43 @@ Options:
     },
     border: { type: 'line' },
   });
+
+  const createFileList = () => {
+    const newList = blessed.list({
+      top: 0,
+      left: 0,
+      width: '30%',
+      height: '99%',
+      label: 'Files (0)',
+      keys: true,
+      vi: true,
+      mouse: true,
+      tags: true,
+      scrollbar: {
+        ch: ' ',
+        track: { bg: 'white' },
+        style: { bg: 'blue' },
+      },
+      style: {
+        selected: { fg: 'black', bg: 'white' },
+        border: { fg: 'white' },
+      },
+      border: { type: 'line' },
+    });
+
+    newList.on('select item', () => {
+      scheduleDiffUpdate();
+    });
+
+    newList.key(['up', 'down'], () => {
+      scheduleDiffUpdate();
+    });
+
+    newList.on('wheeldown', () => handleScroll('down'));
+    newList.on('wheelup', () => handleScroll('up'));
+
+    return newList;
+  };
 
   const diffView = blessed.scrollabletext({
     top: 0,
@@ -187,6 +236,8 @@ Options:
   let diffUpdateTimeout: NodeJS.Timeout | null = null;
   let currentSearchTerm: string = '';
   let currentBranch: string = '';
+  let lastFilePaths: string[] = [];
+  let isUpdatingList = false;
 
   const scheduleDiffUpdate = () => {
     if (diffUpdateTimeout) clearTimeout(diffUpdateTimeout);
@@ -196,15 +247,16 @@ Options:
   };
 
   const handleScroll = (direction: 'up' | 'down') => {
-    if (screen.focused === fileList) {
+    const focused = screen.focused;
+    if (focused === fileList) {
       if (direction === 'up') {
-        fileList.up(1);
+        focused.up(1);
       } else {
-        fileList.down(1);
+        focused.down(1);
       }
       scheduleDiffUpdate();
       screen.render();
-    } else if (screen.focused === diffView) {
+    } else if (focused === diffView) {
       const scrollAmount = direction === 'up' ? -2 : 2;
       diffView.scroll(scrollAmount);
       screen.render();
@@ -220,11 +272,10 @@ Options:
   // Attach custom scroll handlers to widgets (captures wheel even if hovering specific widget)
   // We use widget-level listeners now that screen.mouse is true.
   // We attach to both to ensure the event is caught regardless of where the mouse is.
+  // We use widget-level listeners now that screen.mouse is true.
+  // We attach to both to ensure the event is caught regardless of where the mouse is.
   // The handleScroll function will then decide WHAT to scroll based on focus.
-  
-  fileList.on('wheeldown', () => handleScroll('down'));
-  fileList.on('wheelup', () => handleScroll('up'));
-  
+
   diffView.on('wheeldown', () => handleScroll('down'));
   diffView.on('wheelup', () => handleScroll('up'));
 
@@ -321,6 +372,9 @@ Options:
   };
 
   const updateFileList = async () => {
+    if (isUpdatingList) return;
+    isUpdatingList = true;
+
     const selectedPath = currentFiles[fileList.selected]?.path;
 
     let files: FileStatus[];
@@ -344,41 +398,59 @@ Options:
       return `${color}${f.path}{/}`;
     });
 
-    fileList.setItems(items);
-
     const labelTitle = currentSearchTerm ? `Files (${files.length}) - Searching: "${currentSearchTerm}"` : `Files (${files.length})`;
-    fileList.setLabel(labelTitle);
+
+    const newFilePaths = files.map(f => f.path);
+    const selectedFileStillExists = selectedPath ? newFilePaths.includes(selectedPath) : false;
+    const listChanged = lastFilePaths.length !== newFilePaths.length ||
+                       lastFilePaths.some(path => !newFilePaths.includes(path)) ||
+                       newFilePaths.some(path => !lastFilePaths.includes(path));
 
     if (items.length > 0) {
-      // Restore selection by path if possible
       const newSelectedIndex = selectedPath ? currentFiles.findIndex(f => f.path === selectedPath) : -1;
-      fileList.select(newSelectedIndex >= 0 ? newSelectedIndex : 0);
-      // Reset lastSelectedPath to force diff update even if path matches (file status may have changed)
-      lastSelectedPath = null;
-      // Cancel any pending diff update and update immediately
+
+      const oldFileList = fileList;
+      const newFileList = createFileList();
+      newFileList.setLabel(labelTitle);
+      newFileList.setItems(items);
+      newFileList.select(newSelectedIndex >= 0 ? newSelectedIndex : 0);
+
+      if (!selectedFileStillExists || listChanged) {
+        lastSelectedPath = null;
+      }
+
+      lastFilePaths = newFilePaths;
+
       if (diffUpdateTimeout) {
         clearTimeout(diffUpdateTimeout);
         diffUpdateTimeout = null;
       }
       await updateDiff();
+
+      oldFileList.destroy();
+      screen.remove(oldFileList);
+      fileList = newFileList;
+      screen.append(fileList);
     } else {
-      // Clear the file list when there are no files
-      fileList.clearItems();
+      const oldFileList = fileList;
+      const newFileList = createFileList();
+      newFileList.setLabel(labelTitle);
+      newFileList.setItems([]);
+
       diffView.setContent(currentSearchTerm ? `No files match "${currentSearchTerm}".` : 'No changes detected.');
       diffView.setLabel(' Diff () ');
       lastSelectedPath = null;
+      lastFilePaths = [];
+
+      oldFileList.destroy();
+      screen.remove(oldFileList);
+      fileList = newFileList;
+      screen.append(fileList);
     }
 
     screen.render();
+    isUpdatingList = false;
   };
-
-  fileList.on('select item', () => {
-    scheduleDiffUpdate();
-  });
-
-  fileList.key(['up', 'down'], () => {
-    scheduleDiffUpdate();
-  });
 
   screen.key(['escape', 'q', 'C-c'], () => {
     if (!searchBox.hidden) {
@@ -465,12 +537,10 @@ Options:
     if (selectedFile) {
       try {
         await gitHandler.revertFile(selectedFile.path);
-        console.log(chalk.green(`File ${selectedFile.path} reverted successfully.`));
         // Refresh the file list after reverting
         await updateFileList();
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(chalk.red(`Error reverting file: ${errorMessage}`));
       }
     }
     fileList.focus();
