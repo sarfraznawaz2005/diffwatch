@@ -147,24 +147,34 @@ Options:
     hidden: true,
   });
 
+  // Branch display in bottom right
+  const branchBox = blessed.box({
+    bottom: 0,
+    right: 0,
+    width: 'shrink',
+    height: 1,
+    align: 'left',
+    content: chalk.cyan('Branch: '),
+    style: {
+      fg: 'white',
+    },
+  });
+
   // Footer box to show shortcuts - aligned with the panes
   const footer = blessed.box({
     bottom: 0,
     left: 0,
     width: '100%',
     height: 1,
-    align: 'center',
     content: chalk.green('←→') + ' Switch |' + chalk.green(' ⏎') + ' Open | ' + chalk.green('S') + ' Search | ' + chalk.green('R') + ' Revert | ' + chalk.green('Q') + ' Quit ',
   });
-
-  // Adjust footer to align with the panes
-  // Note: We'll adjust this after screen initialization
 
   screen.append(fileList);
   screen.append(diffView);
   screen.append(searchBox);
   screen.append(confirmDialog);
   screen.append(footer);
+  screen.append(branchBox);
 
   const updateBorders = () => {
     fileList.style.border.fg = screen.focused === fileList ? 'yellow' : 'white';
@@ -176,6 +186,7 @@ Options:
   let lastSelectedPath: string | null = null;
   let diffUpdateTimeout: NodeJS.Timeout | null = null;
   let currentSearchTerm: string = '';
+  let currentBranch: string = '';
 
   const scheduleDiffUpdate = () => {
     if (diffUpdateTimeout) clearTimeout(diffUpdateTimeout);
@@ -233,6 +244,15 @@ Options:
       }
     } catch (error) {
       console.error(`Failed to open ${filePath}: ${error}`);
+    }
+  };
+
+  const updateBranch = async () => {
+    const branch = await gitHandler.getBranch();
+    if (branch !== currentBranch) {
+      currentBranch = branch;
+      branchBox.setContent(chalk.cyan('Branch: ') + chalk.yellow(branch));
+      screen.render();
     }
   };
 
@@ -468,8 +488,10 @@ Options:
 
   setInterval(async () => {
     await updateFileList();
+    await updateBranch();
   }, 5000);
 
+  await updateBranch();
   await updateFileList();
   fileList.focus();
   updateBorders();

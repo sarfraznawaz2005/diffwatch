@@ -22,6 +22,15 @@ export class GitHandler {
     }
   }
 
+  async getBranch(): Promise<string> {
+    try {
+      const status = await this.git.status();
+      return status.current || 'HEAD';
+    } catch {
+      return 'HEAD';
+    }
+  }
+
   async getStatus(): Promise<FileStatus[]> {
     const status: StatusResult = await this.git.status();
     const uniqueFiles = new Map<string, FileStatus>();
