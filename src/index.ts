@@ -157,9 +157,9 @@ Options:
     tags: false,
   });
 
-  const searchBox = blessed.box({
+const searchBox = blessed.box({
     top: 'center',
-    left: 'center',
+    left: '40%', // Center of right pane (30% + 70%/2 = 65%)
     width: '50%',
     height: 3,
     label: ' Search ',
@@ -182,7 +182,7 @@ Options:
   // Confirmation dialog for revert
   const confirmDialog = blessed.box({
     top: 'center',
-    left: 'center',
+    left: '40%', // Center of right pane (30% + 70%/2 = 65%)
     width: '38%',
     label: ' Confirm Revert ',
     height: 3,
@@ -198,7 +198,7 @@ Options:
 
   const notificationBox = blessed.box({
     top: 'center',
-    left: 'center',
+    left: '40%', // Center of right pane (30% + 70%/2 = 65%)
     width: '50%',
     height: 3,
     label: ' Notification ',
