@@ -608,19 +608,19 @@ await updateBranch();
 
   // Clean up interval on exit
 screen.key(['escape', 'q', 'C-c'], () => {
-    clearInterval(updateInterval);
+    // Don't handle ESC if confirmation dialog has focus or is visible
+    if (screen.focused === confirmDialog || !confirmDialog.hidden) {
+      return false;
+    }
+    
     if (!searchBox.hidden) {
       searchBox.hide();
       screen.render();
       fileList.focus();
       return false;
-    } else if (!confirmDialog.hidden) {
-      // Close the confirmation dialog if it's open
-      confirmDialog.hide();
-      fileList.focus();
-      screen.render();
-      return false;
     } else {
+      // Clear interval only when actually exiting
+      clearInterval(updateInterval);
       screen.destroy();
       process.exit(0);
     }
