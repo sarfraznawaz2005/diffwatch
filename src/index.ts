@@ -435,7 +435,14 @@ const searchBox = blessed.box({
       else if (f.status === 'unstaged') color = '{white-fg}';
       else if (f.status === 'unchanged') color = '{grey-fg}';
 
-      return `${color}${f.path}{/}`;
+      let statusSymbol = '';
+      if (f.status === 'added') statusSymbol = 'A ';
+      else if (f.status === 'deleted') statusSymbol = 'D ';
+      else if (f.status === 'modified') statusSymbol = 'M ';
+      else if (f.status === 'unstaged') statusSymbol = '? ';
+      else if (f.status === 'unchanged') statusSymbol = '  ';
+
+      return `${color}${statusSymbol}${f.path}{/}`;
     });
 
     const labelTitle = currentSearchTerm ? `Files (${files.length}) - Searching: "${currentSearchTerm}"` : `Files (${files.length})`;
