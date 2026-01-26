@@ -87,6 +87,7 @@ Options:
     vi: true,
     mouse: true,
     tags: true,
+    padding: { left: 0, right: 0 },
     scrollbar: {
       ch: ' ',
       track: { bg: 'white' },
@@ -110,6 +111,7 @@ Options:
       vi: true,
       mouse: true,
       tags: true,
+      padding: { left: 0, right: 0 },
       scrollbar: {
         ch: ' ',
         track: { bg: 'white' },
@@ -145,6 +147,7 @@ Options:
     keys: true,
     vi: true,
     mouse: true,
+    padding: { left: 1, right: 0 },
     scrollbar: {
       ch: ' ',
       track: { bg: 'white' },
