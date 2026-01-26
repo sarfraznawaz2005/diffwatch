@@ -432,14 +432,14 @@ const searchBox = blessed.box({
       if (f.status === 'added') color = '{green-fg}';
       else if (f.status === 'deleted') color = '{red-fg}';
       else if (f.status === 'modified') color = '{blue-fg}';
-      else if (f.status === 'unstaged') color = '{white-fg}';
+      else if (f.status === 'unstaged') color = '{green-fg}';
       else if (f.status === 'unchanged') color = '{grey-fg}';
 
       let statusSymbol = '';
       if (f.status === 'added') statusSymbol = 'A ';
       else if (f.status === 'deleted') statusSymbol = 'D ';
       else if (f.status === 'modified') statusSymbol = 'M ';
-      else if (f.status === 'unstaged') statusSymbol = '? ';
+      else if (f.status === 'unstaged') statusSymbol = '+ ';
       else if (f.status === 'unchanged') statusSymbol = '  ';
 
       return `${color}${statusSymbol}${f.path}{/}`;
