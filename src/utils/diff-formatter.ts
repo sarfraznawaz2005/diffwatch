@@ -22,7 +22,7 @@ export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string)
       const $row = $(row);
 
         if ($row.find('.d2h-code-line').length > 0) {
-          const $codeCell = $row.find('td.d2h-code-linenumber');
+          const $lineNumberCell = $row.find('td.d2h-code-linenumber');
           const isAdded = $row.find('td.d2h-ins').length > 0;
           const isDeleted = $row.find('td.d2h-del').length > 0;
           const $lineContent = $row.find('.d2h-code-line-ctn');
@@ -31,7 +31,11 @@ export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string)
 
           let prefix = '';
           let content = '';
+          let lineNumber = '';
 
+          if ($lineNumberCell.length > 0) {
+            lineNumber = $lineNumberCell.text().trim();
+          }
           if ($linePrefix.length > 0) {
             prefix = $linePrefix.text();
           }
@@ -43,6 +47,9 @@ export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string)
 
           let fullLine = prefix + content;
 
+          // Add line number with proper formatting
+          const formattedLineNumber = lineNumber ? `${lineNumber}: ` : '    ';
+
           // Highlight search term if present
           if (searchTerm && fullLine.toLowerCase().includes(searchTerm.toLowerCase())) {
              const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -53,12 +60,12 @@ export function formatDiffWithDiff2Html(diffString: string, searchTerm?: string)
           }
 
           if (isAdded) {
-            blessedText += `\x1b[32m${fullLine}\x1b[0m\n`;
-          } else if (isDeleted) {
-            blessedText += `\x1b[31m${fullLine}\x1b[0m\n`;
-          } else {
-            blessedText += `\x1b[37m${fullLine}\x1b[0m\n`;
-          }
+             blessedText += `\x1b[90m${formattedLineNumber}\x1b[0m\x1b[32m${fullLine}\x1b[0m\n`;
+           } else if (isDeleted) {
+             blessedText += `\x1b[90m${formattedLineNumber}\x1b[0m\x1b[31m${fullLine}\x1b[0m\n`;
+           } else {
+             blessedText += `\x1b[90m${formattedLineNumber}\x1b[0m\x1b[37m${fullLine}\x1b[0m\n`;
+           }
         }
 
       if ($row.find('.d2h-info').length > 0) {
