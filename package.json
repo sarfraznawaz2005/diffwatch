@@ -1,6 +1,6 @@
 {
   "name": "diffwatch",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A TUI app for watching git repository file changes with diffs.",
   "keywords": [
     "git",
@@ -22,6 +22,7 @@
   },
   "license": "MIT",
   "author": "Sarfraz <sarfraznawaz2005@gmail.com>",
+  "readme": "README.md",
   "engines": {
     "node": ">=18.0.0"
   },
