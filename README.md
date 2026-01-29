@@ -57,12 +57,7 @@ diffwatch
 
 To watch a specific git repository:
 ```bash
-diffwatch --path /path/to/repo
-```
-
-To use the short form:
-```bash
-diffwatch -p /path/to/repo
+diffwatch --path|-p /path/to/repo
 ```
 
 ### Command Line Options
@@ -167,40 +162,6 @@ bun run typecheck
 # or
 bun run lint
 ```
-
-## Troubleshooting
-
-### "Error: Not a git repository"
-
-This error occurs when you try to run DiffWatch in a directory that is not a git repository.
-
-**Solutions:**
-- Make sure you're running the command from within a git repository
-- Use the `--path` flag to specify a git repository path:
-  ```bash
-  diffwatch --path /path/to/git/repo
-  ```
-
-### "Error: Invalid path"
-
-This error occurs when the specified directory does not exist.
-
-**Solution:**
-- Verify the path is correct
-- Use an absolute or relative path to an existing directory
-
-### Platform Support
-
-**Note:** DiffWatch currently supports Windows only. Linux and macOS support is planned for future releases.
-
-If you're on Linux or macOS, you can still run the app from source:
-```bash
-git clone https://github.com/sarfraznawaz2005/diffwatch.git
-cd diffwatch
-bun install
-bun run dev
-```
-
 
 ## License
 
