@@ -1,6 +1,6 @@
 {
   "name": "diffwatch",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A TUI app for watching git repository file changes with diffs.",
   "keywords": [
     "git",
@@ -27,11 +27,10 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "diffwatch": "bin/diffwatch.js"
+    "diffwatch": "dist/diffwatch"
   },
   "files": [
     "dist/**/*",
-    "bin/**/*",
     "README.md",
     "LICENSE",
     "package.json"
@@ -59,8 +58,9 @@
     "trash": "^9.0.0"
   },
   "scripts": {
-    "build": "bun run build:version && bun build src/index.tsx --compile --outfile dist/diffwatch",
+    "build": "bun run build:version && bun build src/index.tsx --compile --outfile dist/diffwatch && bun run build:copy-binary",
     "build:version": "node -e \"console.log('export const BUILD_VERSION = \\\"' + require('./package.json').version + '\\\";')\" > src/version.ts",
+    "build:copy-binary": "node -e \"const fs = require('fs'); const src = 'dist/diffwatch.exe'; const dst = 'dist/diffwatch'; if (fs.existsSync(src)) { fs.copyFileSync(src, dst); }\"",
     "dev": "bun run src/index.tsx",
     "start": "bun run src/index.tsx",
     "prepublishOnly": "bun run build",
