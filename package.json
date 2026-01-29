@@ -27,7 +27,7 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "diffwatch": "./bin/diffwatch.js"
+    "diffwatch": "bin/diffwatch.js"
   },
   "files": [
     "dist/**/*",
