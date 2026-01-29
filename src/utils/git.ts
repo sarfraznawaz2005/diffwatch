@@ -187,8 +187,8 @@ export async function getCurrentBranch(cwd: string = process.cwd()): Promise<str
 export async function getBranchCount(cwd: string = process.cwd()): Promise<number> {
     try {
         const git = simpleGit(cwd);
-        const branches = await git.branch(['-a']);
-        return branches.all.length;
+        const branches = await git.branch();
+        return branches.all.filter(branch => !branch.startsWith('remotes/')).length;
     } catch (error) {
         // For this function, returning 0 is acceptable behavior when not in a git repo
         // So we return the default value instead of throwing
