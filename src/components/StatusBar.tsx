@@ -20,7 +20,7 @@ export function StatusBar({ branch, branchCount, fileCount, searchActive = false
                 {' '}| <span fg="green">H</span> History | <span fg="green">Q</span> Quit
             </text>
             <text>
-                <span fg="cyan">Branch:</span> <span fg="yellow">{branch}</span> <span fg="gray">({branchCount} total)</span>
+                <span fg="cyan">Branch:</span> <span fg="yellow">{branch}</span> <span fg="gray">({branchCount})</span>
             </text>
         </box>
     );

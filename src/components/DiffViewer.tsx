@@ -115,6 +115,36 @@ const diffData = useMemo(() => {
         return fileContent.split('\n');
     }, [fileContent]);
 
+    // Soft wrap lines at approximately 80 characters
+    const MAX_LINE_WIDTH = 80;
+
+    const wrapLine = (text: string, maxLength: number): string[] => {
+        if (text.length <= maxLength) return [text];
+
+        const lines: string[] = [];
+        let remaining = text;
+
+        while (remaining.length > 0) {
+            if (remaining.length <= maxLength) {
+                lines.push(remaining);
+                break;
+            }
+
+            // Find best break point (prefer spaces)
+            let breakIndex = maxLength;
+            const lastSpace = remaining.lastIndexOf(' ', maxLength);
+
+            if (lastSpace > maxLength * 0.5) {
+                breakIndex = lastSpace + 1;
+            }
+
+            lines.push(remaining.substring(0, breakIndex));
+            remaining = remaining.substring(breakIndex);
+        }
+
+        return lines;
+    };
+
     return (
         <box
             border
@@ -131,27 +161,37 @@ const diffData = useMemo(() => {
                 <text fg="gray">Binary file - content not displayed.</text>
             ) : isNewFile ? (
                 <scrollbox flexGrow={1} ref={scrollRef}>
-                    {contentLines.map((line, i) => {
-                        let renderedParts: React.ReactNode = line;
-                        if (searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase())) {
-                            // Sanitize search query for regex to prevent ReDoS attacks
-                            const sanitizedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            const parts = line.split(new RegExp(`(${sanitizedQuery})`, 'gi'));
-                            renderedParts = parts.map((part, idx) =>
-                                part.toLowerCase() === searchQuery.toLowerCase()
-                                    ? <span key={idx} fg="black" bg="yellow">{part}</span>
-                                    : part
-                            );
-                        }
+                    {contentLines.flatMap((line, i) => {
+                        const wrappedLines = wrapLine(line, MAX_LINE_WIDTH);
 
-                        return (
-                            <box key={i} flexDirection="row" height={1}>
-                                <text fg="gray" width={6}>{`${String(i + 1).padStart(4)}: `}</text>
-                                <text fg="green" flexGrow={1}>
-                                    {renderedParts}
-                                </text>
-                            </box>
-                        );
+                        return wrappedLines.map((wrappedLine, wrapIdx) => {
+                            const isFirstLine = wrapIdx === 0;
+                            let renderedParts: React.ReactNode = wrappedLine;
+
+                            if (searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase())) {
+                                // Sanitize search query for regex to prevent ReDoS attacks
+                                const sanitizedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                const parts = wrappedLine.split(new RegExp(`(${sanitizedQuery})`, 'gi'));
+                                renderedParts = parts.map((part, idx) =>
+                                    part.toLowerCase() === searchQuery.toLowerCase()
+                                        ? <span key={idx} fg="black" bg="yellow">{part}</span>
+                                        : part
+                                );
+                            }
+
+                            return (
+                                <box key={`${i}-${wrapIdx}`} flexDirection="row" height={1}>
+                                    {isFirstLine ? (
+                                        <text fg="gray" width={6}>{`${String(i + 1).padStart(4)}: `}</text>
+                                    ) : (
+                                        <text fg="gray" width={6}>      </text>
+                                    )}
+                                    <text fg="green" flexGrow={1}>
+                                        {renderedParts}
+                                    </text>
+                                </box>
+                            );
+                        });
                     })}
                 </scrollbox>
             ) : !hasChanges ? (
@@ -173,27 +213,40 @@ const diffData = useMemo(() => {
 
                                 const lnText = ln ? `${String(ln).padStart(4)}: ` : '      ';
 
-                                let renderedParts: React.ReactNode;
-                                if (searchQuery && content.toLowerCase().includes(searchQuery.toLowerCase())) {
-                                    // Sanitize search query for regex to prevent ReDoS attacks
-                                    const sanitizedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                                    const parts = content.split(new RegExp(`(${sanitizedQuery})`, 'gi'));
-                                    renderedParts = parts.map((part, i) =>
-                                        part.toLowerCase() === searchQuery.toLowerCase()
-                                            ? <span key={i} fg="black" bg="yellow">{part}</span>
-                                            : part
-                                    );
-                                } else {
-                                    renderedParts = content;
-                                }
+                                // Wrap content if it's too long
+                                const wrappedContent = wrapLine(content, MAX_LINE_WIDTH);
 
                                 return (
-                                    <box key={`${bIdx}-${lIdx}`} flexDirection="row" height={1}>
-                                        <text fg="gray" width={lnText.length}>{lnText}</text>
-                                        <text fg={fg} flexGrow={1}>
-                                            {prefix}{renderedParts}
-                                        </text>
-                                    </box>
+                                    <>
+                                        {wrappedContent.map((wrappedLine, wrapIdx) => {
+                                            const isFirstLine = wrapIdx === 0;
+
+                                            let renderedParts: React.ReactNode;
+                                            if (searchQuery && content.toLowerCase().includes(searchQuery.toLowerCase())) {
+                                                // Sanitize search query for regex to prevent ReDoS attacks
+                                                const sanitizedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                                const parts = wrappedLine.split(new RegExp(`(${sanitizedQuery})`, 'gi'));
+                                                renderedParts = parts.map((part, i) =>
+                                                    part.toLowerCase() === searchQuery.toLowerCase()
+                                                        ? <span key={i} fg="black" bg="yellow">{part}</span>
+                                                        : part
+                                                );
+                                            } else {
+                                                renderedParts = wrappedLine;
+                                            }
+
+                                            return (
+                                                <box key={`${bIdx}-${lIdx}-${wrapIdx}`} flexDirection="row" height={1}>
+                                                    <text fg="gray" width={lnText.length}>
+                                                        {isFirstLine ? lnText : '      '}
+                                                    </text>
+                                                    <text fg={fg} flexGrow={1}>
+                                                        {isFirstLine ? `${prefix}${renderedParts}` : ` ${renderedParts}`}
+                                                    </text>
+                                                </box>
+                                            );
+                                        })}
+                                    </>
                                 );
                             })}
                         </box>

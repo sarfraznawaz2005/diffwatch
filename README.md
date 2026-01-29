@@ -20,6 +20,22 @@ A TUI app for watching git repository file changes with diffs.
 
 ## Installation
 
+### Prerequisites
+
+**Bun runtime is required** to run DiffWatch. If you don't have it installed, install it first:
+
+**macOS/Linux:**
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm bun.sh/install.ps1 | iex
+```
+
+Or visit [bun.sh](https://bun.sh) for other installation methods.
+
 ### Option 1: Install from npm (recommended)
 
 ```bash
