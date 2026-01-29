@@ -20,8 +20,6 @@ A TUI app for watching git repository file changes with diffs.
 
 ## Installation
 
-**Note:** This package currently supports Windows only. Linux and macOS support coming soon.
-
 ### Option 1: Install from npm (recommended)
 
 ```bash
