@@ -1,133 +1,144 @@
-# Agent Guidelines for DiffWatch
+# AGENTS.md
 
-This file contains guidelines for AI agents working on the DiffWatch codebase.
+This file provides guidance for agentic coding assistants working on this project.
 
-## Build, Test, and Development Commands
+## Build/Test Commands
 
-### Running Tests
+**Development:**
+```bash
+bun run dev          # Run the TUI app in development mode
+bun run start        # Alias for dev
+```
+
+**Building:**
+```bash
+bun run build        # Build to dist/diffwatch (auto-includes version)
+```
+
+**Testing:**
 ```bash
 bun test                    # Run all tests
-bun test:watch            # Run tests in watch mode
-bun test:coverage         # Run tests with coverage
-bun test:unit            # Run unit tests only
-bun test:integration     # Run integration tests only
-bun test:git            # Run git-related tests only
-bun test:components     # Run component tests only
-bun test:app           # Run app integration tests
+bun test:watch              # Watch mode for development
+bun test:coverage           # Run tests with coverage
+bun test:unit               # Run all unit tests (tests/unit/)
+bun test:integration        # Run integration tests (tests/integration/)
+bun test:git                # Run git utility tests only
+bun test:components         # Run component tests only
+bun test:app                # Run app integration tests only
 ```
 
-### Running a Single Test
-Use Bun's test pattern matching:
+**Run a single test:**
 ```bash
-bun test <pattern>        # Run tests matching pattern
-bun test git.test.ts      # Run specific test file
-bun test -t "test name"   # Run tests matching name
+bun test tests/unit/git.test.ts
+bun test tests/integration/App.test.ts
 ```
 
-### Build & Type Checking
+**Type Checking & Linting:**
 ```bash
-bun run build            # Build production binary (creates dist/diffwatch.exe)
-bun run dev              # Run in development mode
-bun run start           # Alias for dev
-bun run typecheck       # TypeScript type checking
-bun run lint           # Alias for typecheck
-```
-
-### Version Management
-```bash
-bun run build:version   # Generate src/version.ts from package.json (auto-run during build)
+bun run typecheck   # TypeScript type checking
+bun run lint        # Alias for typecheck
 ```
 
 ## Code Style Guidelines
 
 ### Imports
-- Use named imports for React hooks: `import { useState, useEffect } from 'react';`
-- Use named imports from utilities: `import { func1, func2, type Type1 } from './utils/git';`
-- Use `import * as module from 'module'` for Node.js modules
-- Group imports in this order: React → external libs → local components → local utils
+- Use named imports from React: `import { useState, useEffect, useMemo } from 'react'`
+- Use named imports from OpenTUI: `import { useRenderer, useKeyboard } from '@opentui/react'`
+- Import both functions and types from utility modules: `import { getChangedFiles, type FileStatus } from './utils/git'`
+- Use relative imports with `./` or `../` for internal modules
+- Use bare imports for external packages: `import simpleGit from 'simple-git'`
 
 ### Formatting
-- Use 4-space indentation
-- End statements with semicolons
-- Use double quotes for strings
-- Components use PascalCase: `FileList`, `StatusBar`
-- Functions use camelCase: `getChangedFiles`, `runGit`
-- Constants use UPPER_SNAKE_CASE: `POLLING_INTERVAL`
-- Interfaces use PascalCase: `FileStatusProps`, `FsPromises`
+- 2-space indentation
+- Single quotes for strings
+- Semicolons required at end of statements
+- Use backticks for template literals
+- No trailing whitespace
 
-### Type Annotations
-- Type all function parameters and return values
-- Use interfaces for component props: `interface ComponentProps { }`
-- Use `export type` for type aliases
-- Use generics with React hooks: `useState<FileStatus[]>([])`
-- Leverage strict TypeScript (noImplicitAny, strictNullChecks)
+### Types
+- TypeScript strict mode enabled
+- Explicitly type function parameters and return values
+- Use `type` for type aliases (not `interface` unless needed)
+- Union types for string literals: `'modified' | 'new' | 'deleted'`
+- Use `any` sparingly; prefer `unknown` or specific types
+- Use `Record<string, string>` for simple object maps
+- Component props defined as interfaces before the component
 
-### Components
-- Use functional components with hooks
-- Destructure props in function signature
-- Use TypeScript for prop interfaces
-- Use conditional rendering for optional features
+### Naming Conventions
+- **Components:** PascalCase (`App`, `FileList`, `DiffViewer`)
+- **Functions:** camelCase (`getChangedFiles`, `loadContent`, `openFile`)
+- **Constants:** UPPER_SNAKE_CASE (`POLLING_INTERVAL`)
+- **Variables/Props:** camelCase (`selectedIndex`, `repoPath`, `isBinary`)
+- **Interfaces:** PascalCase with descriptive names (`FileStatus`, `FileListProps`)
+- **Type exports:** Export types alongside functions for clarity
 
 ### Error Handling
-- Use try-catch for async operations
-- Handle errors gracefully (don't crash the app)
-- Check `error instanceof Error` before accessing `.message`
-- Return fallback values for non-critical failures
-- Use dependency injection for testing file system operations
+- Use try-catch blocks for async operations that may fail
+- Return default values instead of throwing for non-critical errors:
+  - Git operations: return `[]` for file lists, `'unknown'` for branch
+  - File operations: return `''` for content, `false` for boolean checks
+- Handle errors gracefully in UI components (show notifications, not crashes)
+- Use error instanceof Error to safely extract messages
+- Log console.error only when helpful for debugging
+
+### Component Patterns
+- Define interfaces for props before component function
+- Use hooks at the top of component body
+- useEffect cleanup: clear intervals/refs to prevent memory leaks
+- Include all dependencies in useEffect dependency arrays
+- Use useRef for mutable values that don't trigger re-renders (intervals)
+- Separate concerns: state management, effects, and rendering
+- Use useMemo for expensive computations
+- Use key prop for dynamic lists
 
 ### Testing
-- Use Bun's test framework: `import { describe, test, expect, mock } from 'bun:test';`
-- Mock external dependencies (fs, simple-git) before importing
-- Use `describe/test` blocks for organization
-- Restore mocks in `beforeEach`: `mock.restore();`
-- Test edge cases (empty arrays, missing files, invalid paths)
+- Use Bun's test framework: `import { describe, test, expect, mock, beforeEach, afterEach } from 'bun:test'`
+- Mock modules at the top with `mock.module()` before imports
+- Reset mocks in `beforeEach()` with `mock.restore()`
+- Structure tests with `describe()` blocks grouping related functionality
+- Write descriptive test names that explain what is being tested
+- Test both success and error cases
+- Use dependency injection for testing (pass mocked fs/path implementations)
+- Test files mirror src structure: `tests/unit/git.test.ts` for `src/utils/git.ts`
+- Use `expect().toBe()`, `expect().toEqual()`, `expect().toHaveLength()`, `expect().toHaveBeenCalledWith()`
+
+### React Patterns
+- Functional components with hooks (no class components)
+- Controlled components with state
+- Keyboard handling with `useKeyboard` hook
+- Mouse interactions with `onMouseDown`, `onMouseScroll` handlers
+- Conditional rendering with ternary operators and `&&`
+- Fragment for multiple elements: `<>...</>`
+- Use `span` for inline text with color/styling in OpenTUI
+- Use `box` for layout containers with flexDirection
 
 ### File Organization
+- `src/index.tsx` - Entry point
 - `src/App.tsx` - Main application component
-- `src/components/*.tsx` - UI components
-- `src/utils/*.ts` - Business logic and git operations
-- `src/constants.ts` - Application constants
-- `tests/unit/*.test.ts` - Unit tests
-- `tests/integration/*.test.ts` - Integration tests
+- `src/components/` - UI components (FileList, DiffViewer, StatusBar, HistoryViewer)
+- `src/utils/` - Utility functions (git.ts)
+- `src/constants.ts` - Constants
+- `tests/unit/` - Unit tests for components and utilities
+- `tests/integration/` - Integration tests for the app
+- `bin/diffwatch.js` - Executable wrapper for the compiled binary
 
-### TypeScript Configuration
-- Strict mode enabled
-- Target ESNext
-- React JSX with automatic runtime
-- Allow importing TS extensions (for Bun)
+### Git Operations
+- Use `simple-git` library for all git operations
+- Handle compound git status strings (e.g., "AD", "AM", "MD")
+- Deduplicate files by path when multiple statuses apply
+- Sort files by mtime descending, then by filename
+- Use `git diff -U3` for consistent diff context
+- Use `git grep -i -l -F` for file content search
 
-## Important Notes
+### Performance
+- Poll for git changes every 2 seconds (POLLING_INTERVAL)
+- Debounce search operations (300ms timeout)
+- Clean up intervals in useEffect return functions
+- Use refs to track interval IDs and prevent duplicates
+- Lazy load commit history only when history mode is active
 
-- This is a TUI (Terminal UI) app using @opentui/react
-- Real-time polling every 2 seconds (POLLING_INTERVAL)
-- All git operations accept optional `cwd` parameter defaulting to `process.cwd()`
-- Use dependency injection patterns for testing (FsPromises, Path interfaces)
-- The app is built with Bun's compiler into a single executable
-- Windows-only currently; Linux/macOS support planned
-
-## Common Tasks
-
-### Adding a New Component
-1. Create component in `src/components/`
-2. Define props interface with TypeScript
-3. Use functional component pattern
-4. Export as named export
-5. Add tests in `tests/unit/`
-
-### Adding Git Operations
-1. Add function to `src/utils/git.ts`
-2. Export with type annotations
-3. Accept `cwd: string = process.cwd()` parameter
-4. Use simple-git for git operations
-5. Add unit tests with mocked git
-
-### Adding CLI Flags
-1. Update `src/index.tsx` parseArgs() function
-2. Add handling for the new flag
-3. Update help message in showHelp()
-4. Test with `dist/diffwatch.exe --flag`
-
-### Adding Keyboard Shortcuts
-1. Update `src/App.tsx` keyboard handling
-2. Document in README.md Keyboard Shortcuts section
-3. Add to --help output
+### Platform Support
+- Windows: Use `spawn('cmd', ['/c', 'start', '""', absPath], { shell: false })`
+- macOS: Use `spawn('open', [absPath], { shell: true })`
+- Linux: Use `spawn('xdg-open', [absPath], { shell: true })`
+- Handle paths with spaces on all platforms
