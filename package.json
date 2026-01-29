@@ -1,0 +1,78 @@
+{
+  "name": "diffwatch",
+  "version": "2.0.0",
+  "description": "A TUI app for watching git repository file changes with diffs.",
+  "keywords": [
+    "git",
+    "diff",
+    "terminal",
+    "tui",
+    "cli",
+    "git-gui",
+    "git-diff",
+    "terminal-ui"
+  ],
+  "homepage": "https://github.com/sarfraznawaz2005/diffwatch#readme",
+  "bugs": {
+    "url": "https://github.com/sarfraznawaz2005/diffwatch/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarfraznawaz2005/diffwatch.git"
+  },
+  "license": "MIT",
+  "author": "Sarfraz <sarfraznawaz2005@gmail.com>",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "diffwatch": "./bin/diffwatch.js"
+  },
+  "files": [
+    "dist/**/*",
+    "bin/**/*",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.0.10",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.75",
+    "@opentui/react": "^0.1.75",
+    "@types/diff": "^8.0.0",
+    "diff": "^8.0.3",
+    "diff2html": "^3.4.55",
+    "fuse.js": "^7.1.0",
+    "isbinaryfile": "^6.0.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "simple-git": "^3.30.0",
+    "trash": "^9.0.0"
+  },
+  "scripts": {
+    "build": "bun run build:version && bun build src/index.tsx --compile --outfile dist/diffwatch",
+    "build:version": "node -e \"console.log('export const BUILD_VERSION = \\\"' + require('./package.json').version + '\\\";')\" > src/version.ts",
+    "dev": "bun run src/index.tsx",
+    "start": "bun run src/index.tsx",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "test:git": "bun test tests/unit/git.test.ts",
+    "test:components": "bun test tests/unit/*.test.ts",
+    "test:app": "bun test tests/integration/App.test.ts",
+    "test:unit": "bun test tests/unit/",
+    "test:integration": "bun test tests/integration/",
+    "typecheck": "bun x tsc --noEmit",
+    "lint": "bun run typecheck"
+  }
+}

@@ -1,0 +1,32 @@
+# Dependencies
+node_modules
+
+# Test files
+tests
+*.test.ts
+*.test.tsx
+
+# Generated files
+src/version.ts
+
+# TypeScript
+tsconfig.json
+
+# Development
+.git
+.gitignore
+.eslintrc*
+.prettierrc*
+
+# Build artifacts (we include only what we need in package.json files)
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
