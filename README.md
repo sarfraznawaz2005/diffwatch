@@ -8,15 +8,12 @@ A TUI app for watching git repository file changes with diffs.
 
 - **File Status Tracking**: Shows all changed files in a Git repository with their status (modified, new, deleted, renamed, etc.)
 - **Visual Diff Viewer**: Displays differences between file versions with syntax highlighting and line-by-line comparison
-- **Interactive Terminal Interface**: Built with React-like components for terminal UI using the @opentui library
-- **Real-time Updates**: Automatically polls for changes in the repository every 2 seconds
 - **File Operations**: 
   - Revert changes to files
   - Delete files safely (with trash/recycle bin support)
   - Open files in the default editor
 - **Search Functionality**: Allows searching for files by content within the repository
 - **Commit History Browser**: View commit history with hash, message, author, and date
-- **Keyboard Navigation**: Full keyboard controls for navigating files and diffs
 
 ## Installation
 
@@ -62,8 +59,6 @@ bun install
 
 ## Usage
 
-### Basic Usage
-
 To watch the current git repository:
 ```bash
 diffwatch
@@ -97,16 +92,6 @@ Watch a specific project:
 diffwatch --path ~/projects/my-app
 ```
 
-Check version:
-```bash
-diffwatch --version
-```
-
-Show help:
-```bash
-diffwatch --help
-```
-
 ## Keyboard Shortcuts
 
 - `↑` / `↓` - Navigate through the file list
@@ -118,26 +103,6 @@ diffwatch --help
 - `H` - View commit history
 - `Q` - Quit the application
 - `Esc` - Exit search mode or close dialogs
-
-## Development
-
-### Prerequisites
-
-- [Bun](https://bun.sh/) - Fast JavaScript runtime and package manager
-- Node.js 18+ (for running published package)
-
-### Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/sarfraznawaz2005/diffwatch.git
-cd diffwatch
-```
-
-2. Install dependencies:
-```bash
-bun install
-```
 
 ### Running the App in Development
 
