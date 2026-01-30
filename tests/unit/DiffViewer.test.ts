@@ -228,13 +228,74 @@ describe('DiffViewer', () => {
         const absolutePath = '/absolute/path/to/file.ts';
         const relativePath = 'relative/path/to/file.ts';
         const windowsPath = 'C:\\Users\\test\\file.ts';
-        
+
         const isAbsolute = (path: string): boolean => {
             return path.startsWith('/') || /^[A-Za-z]:\\/.test(path);
         };
-        
+
         expect(isAbsolute(absolutePath)).toBe(true);
         expect(isAbsolute(relativePath)).toBe(false);
         expect(isAbsolute(windowsPath)).toBe(true);
+    });
+
+    test('should wrap long lines based on available width', () => {
+        // Simulate the wrapLine function logic
+        const wrapLine = (text: string, maxLength: number): string[] => {
+            if (text.length <= maxLength) return [text];
+
+            const lines: string[] = [];
+            let remaining = text;
+
+            while (remaining.length > 0) {
+                if (remaining.length <= maxLength) {
+                    lines.push(remaining);
+                    break;
+                }
+
+                // Find best break point (prefer spaces)
+                let breakIndex = maxLength;
+                const lastSpace = remaining.lastIndexOf(' ', maxLength);
+
+                if (lastSpace > maxLength * 0.5) {
+                    breakIndex = lastSpace + 1;
+                }
+
+                lines.push(remaining.substring(0, breakIndex));
+                remaining = remaining.substring(breakIndex);
+            }
+
+            return lines;
+        };
+
+        const longLine = 'This is a very long line that exceeds the typical width and should be wrapped into multiple lines for better readability in the terminal interface.';
+        const shortLine = 'Short line test';
+
+        // Test with different max lengths
+        expect(wrapLine(shortLine, 100)).toHaveLength(1); // No wrapping needed for short line
+        expect(wrapLine(longLine, 200)).toHaveLength(1); // No wrapping needed when maxLength > line length
+        const wrappedLines = wrapLine(longLine, 30);
+        expect(wrappedLines.length).toBeGreaterThan(1); // Should be wrapped into multiple lines
+        expect(wrappedLines.every(line => line.length <= 30)).toBe(true); // All lines should be within limit
+
+        // Check that the content is preserved when joined
+        expect(wrappedLines.join('').replace(/\s+/g, ' ')).toContain('long line that exceeds');
+    });
+
+    test('should calculate max line width based on available width', () => {
+        // Simulate the calculateMaxLineWidth function logic
+        const calculateMaxLineWidth = (totalWidth: number): number => {
+            // The diff viewer takes up 67% of the total width, and we need to account for:
+            // - Line numbers (6 chars: " 1234: ")
+            // - Prefix (+/-/space) (1 char)
+            // - Borders (2 chars: left and right)
+            // Total overhead: 6 (line numbers) + 1 (prefix) + 2 (borders) = 9 chars
+            const estimatedWidth = Math.floor((totalWidth * 0.67) - 9); // 9 chars for line numbers, prefix, and borders
+            return Math.max(20, estimatedWidth); // minimum width of 20
+        };
+
+        // Test with different terminal widths
+        expect(calculateMaxLineWidth(80)).toBeGreaterThanOrEqual(20); // Minimum should be 20
+        expect(calculateMaxLineWidth(100)).toBe(Math.max(20, Math.floor((100 * 0.67) - 9)));
+        expect(calculateMaxLineWidth(120)).toBe(Math.max(20, Math.floor((120 * 0.67) - 9)));
     });
 });

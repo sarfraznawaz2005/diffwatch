@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { useKeyboard } from '@opentui/react';
+import { useKeyboard, useRenderer } from '@opentui/react';
 import { getRawDiff } from '../utils/git';
 import * as Diff2Html from 'diff2html';
 import * as fsPromises from 'fs/promises';
@@ -22,6 +22,7 @@ export function DiffViewer({ filename, focused, searchQuery, status, repoPath }:
     const [isBinary, setIsBinary] = useState(false);
     const scrollRef = useRef<any>(null);
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const renderer = useRenderer();
 
     const loadContent = async (showLoading = true) => {
         if (!filename) {
@@ -115,9 +116,19 @@ const diffData = useMemo(() => {
         return fileContent.split('\n');
     }, [fileContent]);
 
-    // Soft wrap lines at approximately 80 characters
-    const MAX_LINE_WIDTH = 80;
+    // Calculate the max line width based on available width in the diff viewer
+    // The diff viewer takes up 67% of the total width, and we need to account for:
+    // - Line numbers (6 chars: " 1234: ")
+    // - Prefix (+/-/space) (1 char)
+    // - Borders (2 chars: left and right)
+    // - Some padding (1 char)
+    // Total overhead: 6 (line numbers) + 1 (prefix) + 2 (borders) = 9 chars
+    const calculateMaxLineWidth = (): number => {
+        const estimatedWidth = Math.floor((renderer.width * 0.67) - 9); // 9 chars for line numbers, prefix, and borders
+        return Math.max(20, estimatedWidth); // minimum width of 20
+    };
 
+    // Soft wrap lines based on available width
     const wrapLine = (text: string, maxLength: number): string[] => {
         if (text.length <= maxLength) return [text];
 
@@ -145,6 +156,8 @@ const diffData = useMemo(() => {
         return lines;
     };
 
+    const maxLineWidth = calculateMaxLineWidth();
+
     return (
         <box
             border
@@ -162,7 +175,7 @@ const diffData = useMemo(() => {
             ) : isNewFile ? (
                 <scrollbox flexGrow={1} ref={scrollRef}>
                     {contentLines.flatMap((line, i) => {
-                        const wrappedLines = wrapLine(line, MAX_LINE_WIDTH);
+                        const wrappedLines = wrapLine(line, maxLineWidth);
 
                         return wrappedLines.map((wrappedLine, wrapIdx) => {
                             const isFirstLine = wrapIdx === 0;
@@ -214,7 +227,7 @@ const diffData = useMemo(() => {
                                 const lnText = ln ? `${String(ln).padStart(4)}: ` : '      ';
 
                                 // Wrap content if it's too long
-                                const wrappedContent = wrapLine(content, MAX_LINE_WIDTH);
+                                const wrappedContent = wrapLine(content, maxLineWidth);
 
                                 return (
                                     <>

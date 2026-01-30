@@ -34,9 +34,10 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
         // Get the width of the container (33% of total width)
         // Since we can't directly measure the rendered width, we'll estimate based on a percentage
         // considering that the container is 33% of the total width
-        // and we need to account for the symbol (1 char) + space (1 char) = 2 chars
-        // Also account for potential borders and padding (approximately 2-3 chars)
-        const estimatedWidth = Math.floor((renderer.width * 0.33) - 5); // 5 chars for symbol + spaces + borders/padding
+        // and we need to account for the symbol (1 char) + space (1 char) before the filename
+        // Also account for borders (left and right = 2 chars total)
+        // Total overhead: 1 (symbol) + 1 (space after symbol) + 2 (borders) = 4 chars
+        const estimatedWidth = Math.floor((renderer.width * 0.33) - 4); // 4 chars for symbol + space + borders
         return Math.max(10, estimatedWidth); // minimum length of 10
     };
 
@@ -47,6 +48,7 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
         if (maxLength <= 3) {
             return '.'.repeat(maxLength);
         }
+        // Truncate the path and add ellipsis (...) at the end
         return path.substring(0, maxLength - 3) + '...';
     };
 

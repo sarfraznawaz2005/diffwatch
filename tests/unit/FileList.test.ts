@@ -175,10 +175,55 @@ describe('FileList Component Logic', () => {
 
             const symbol = statusSymbolMap[file.status] || '?';
             const formattedPath = ` ${symbol} ${file.path}`;
-            
+
             // Ensure the format is correct
             expect(formattedPath).toMatch(/^ [AMDUR!?] .+$/);
             expect(formattedPath).toContain(file.path);
         });
+    });
+
+    test('should truncate long file paths with ellipsis (...)', () => {
+        // Simulate the truncatePath function logic
+        const truncatePath = (path: string, maxLength: number): string => {
+            if (path.length <= maxLength) {
+                return path;
+            }
+            if (maxLength <= 3) {
+                return '.'.repeat(maxLength);
+            }
+            // Truncate the path and add ellipsis (...) at the end
+            return path.substring(0, maxLength - 3) + '...';
+        };
+
+        const longPath = 'this/is/a/very/long/file/path/that/should/be/truncated.tsx';
+        const shortPath = 'short/file.ts';
+
+        // Test with different max lengths
+        expect(truncatePath(shortPath, 50)).toBe(shortPath); // No truncation needed for short path
+        expect(truncatePath(longPath, 60)).toBe(longPath); // No truncation needed when maxLength > path length
+        expect(truncatePath(longPath, 20)).toBe('this/is/a/very/lo...'); // Truncation with ..., 17 chars + 3 for ...
+        expect(truncatePath(longPath, 10)).toBe('this/is...'); // Truncation with ..., 7 chars + 3 for ...
+        expect(truncatePath(longPath, 5)).toBe('th...'); // Truncation with ..., 2 chars + 3 for ...
+        expect(truncatePath(longPath, 3)).toBe('...'); // Exactly 3 dots
+        expect(truncatePath(longPath, 1)).toBe('.'); // Single dot
+    });
+
+    test('should calculate max path length correctly', () => {
+        // Simulate the calculateMaxPathLength function logic
+        const calculateMaxPathLength = (totalWidth: number): number => {
+            // Get the width of the container (33% of total width)
+            // Since we can't directly measure the rendered width, we'll estimate based on a percentage
+            // considering that the container is 33% of the total width
+            // and we need to account for the symbol (1 char) + space (1 char) before the filename
+            // Also account for borders (left and right = 2 chars total)
+            // Total overhead: 1 (symbol) + 1 (space after symbol) + 2 (borders) = 4 chars
+            const estimatedWidth = Math.floor((totalWidth * 0.33) - 4); // 4 chars for symbol + space + borders
+            return Math.max(10, estimatedWidth); // minimum length of 10
+        };
+
+        // Test with different terminal widths
+        expect(calculateMaxPathLength(80)).toBeGreaterThanOrEqual(10); // Minimum should be 10
+        expect(calculateMaxPathLength(100)).toBe(Math.max(10, Math.floor((100 * 0.33) - 4)));
+        expect(calculateMaxPathLength(120)).toBe(Math.max(10, Math.floor((120 * 0.33) - 4)));
     });
 });
