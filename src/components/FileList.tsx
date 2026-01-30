@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useRenderer } from '@opentui/react';
 import { type FileStatus } from '../utils/git';
 
 interface FileListProps {
@@ -12,6 +13,7 @@ interface FileListProps {
 
 export function FileList({ files, selectedIndex, focused, searchQuery, onSelect, onScroll }: FileListProps) {
     const scrollRef = useRef<any>(null);
+    const renderer = useRenderer();
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -26,6 +28,30 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
         }
     }, [selectedIndex]);
 
+    // Calculate the max length for file paths based on available width
+    // Account for the symbol, space, and padding
+    const calculateMaxPathLength = (): number => {
+        // Get the width of the container (33% of total width)
+        // Since we can't directly measure the rendered width, we'll estimate based on a percentage
+        // considering that the container is 33% of the total width
+        // and we need to account for the symbol (1 char) + space (1 char) = 2 chars
+        // Also account for potential borders and padding (approximately 2-3 chars)
+        const estimatedWidth = Math.floor((renderer.width * 0.33) - 5); // 5 chars for symbol + spaces + borders/padding
+        return Math.max(10, estimatedWidth); // minimum length of 10
+    };
+
+    const truncatePath = (path: string, maxLength: number): string => {
+        if (path.length <= maxLength) {
+            return path;
+        }
+        if (maxLength <= 3) {
+            return '.'.repeat(maxLength);
+        }
+        return path.substring(0, maxLength - 3) + '...';
+    };
+
+    const maxPathLength = calculateMaxPathLength();
+
     const title = searchQuery
         ? ` Files (${files.length}) - "${searchQuery}" `
         : ` Files (${files.length}) `;
@@ -34,7 +60,7 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
         <box
             border
             title={title}
-            width="30%"
+            width="33%"
             height="100%"
             borderColor={focused ? 'yellow' : 'grey'}
             flexDirection="column"
@@ -74,6 +100,8 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
                     };
                     const symbol = symbolMap[file.status] || '?';
 
+                    const truncatedPath = truncatePath(file.path, maxPathLength);
+
                     return (
                         <box
                             key={file.path}
@@ -84,7 +112,7 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
                             <text
                                 fg={isSelected ? 'black' : color}
                             >
-                                {` ${symbol} ${file.path}`}
+                                {` ${symbol} ${truncatedPath}`}
                             </text>
                         </box>
                     );

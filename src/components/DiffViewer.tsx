@@ -149,7 +149,7 @@ const diffData = useMemo(() => {
         <box
             border
             title={` Diff (${filename || 'None'}) `}
-            width="70%"
+            width="67%"
             borderColor={focused ? 'yellow' : 'grey'}
             flexDirection="column"
         >
