@@ -10,7 +10,14 @@
     "cli",
     "git-gui",
     "git-diff",
-    "terminal-ui"
+    "terminal-ui",
+    "ai",
+    "agent",
+    "codex",
+    "claude",
+    "opencode",
+    "github-cli",
+    "gemini-cli"    
   ],
   "homepage": "https://github.com/sarfraznawaz2005/diffwatch#readme",
   "bugs": {
