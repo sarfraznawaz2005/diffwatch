@@ -1,6 +1,8 @@
 # DiffWatch
 
-A TUI app for watching git repository file changes with diffs.
+A TUI app for watching git repository file changes with diffs. 
+
+**Handy for when you want to know what the AI agents are cooking.**
 
 ![Screenshot](screenshot.jpg)
 
