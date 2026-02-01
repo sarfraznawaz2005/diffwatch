@@ -31,13 +31,13 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
     // Calculate the max length for file paths based on available width
     // Account for the symbol, space, and padding
     const calculateMaxPathLength = (): number => {
-        // Get the width of the container (33% of total width)
+        // Get the width of the container (30% of total width)
         // Since we can't directly measure the rendered width, we'll estimate based on a percentage
-        // considering that the container is 33% of the total width
+        // considering that the container is 30% of the total width
         // and we need to account for the symbol (1 char) + space (1 char) before the filename
         // Also account for borders (left and right = 2 chars total)
         // Total overhead: 1 (symbol) + 1 (space after symbol) + 2 (borders) = 4 chars
-        const estimatedWidth = Math.floor((renderer.width * 0.33) - 4); // 4 chars for symbol + space + borders
+        const estimatedWidth = Math.floor((renderer.width * 0.30) - 4); // 4 chars for symbol + space + borders
         return Math.max(10, estimatedWidth); // minimum length of 10
     };
 
@@ -62,7 +62,7 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
         <box
             border
             title={title}
-            width="33%"
+            width="30%"
             height="100%"
             borderColor={focused ? 'yellow' : 'grey'}
             flexDirection="column"

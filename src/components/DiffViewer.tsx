@@ -117,14 +117,14 @@ const diffData = useMemo(() => {
     }, [fileContent]);
 
     // Calculate the max line width based on available width in the diff viewer
-    // The diff viewer takes up 67% of the total width, and we need to account for:
+    // The diff viewer takes up 70% of the total width, and we need to account for:
     // - Line numbers (6 chars: " 1234: ")
     // - Prefix (+/-/space) (1 char)
     // - Borders (2 chars: left and right)
     // - Some padding (1 char)
     // Total overhead: 6 (line numbers) + 1 (prefix) + 2 (borders) = 9 chars
     const calculateMaxLineWidth = (): number => {
-        const estimatedWidth = Math.floor((renderer.width * 0.67) - 9); // 9 chars for line numbers, prefix, and borders
+        const estimatedWidth = Math.floor((renderer.width * 0.70) - 9); // 9 chars for line numbers, prefix, and borders
         return Math.max(20, estimatedWidth); // minimum width of 20
     };
 
@@ -162,7 +162,7 @@ const diffData = useMemo(() => {
         <box
             border
             title={` Diff (${filename || 'None'}) `}
-            width="67%"
+            width="70%"
             borderColor={focused ? 'yellow' : 'grey'}
             flexDirection="column"
         >
