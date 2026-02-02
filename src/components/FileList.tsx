@@ -80,7 +80,7 @@ export function FileList({ files, selectedIndex, focused, searchQuery, onSelect,
                     const isSelected = i === selectedIndex;
                     const colorMap: Record<string, string> = {
                         modified: 'yellow',
-                        new: 'green',
+                        new: 'brightGreen',
                         deleted: 'brightRed',
                         renamed: 'blue',
                         unstaged: 'cyan',

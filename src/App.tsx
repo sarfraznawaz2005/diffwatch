@@ -358,7 +358,7 @@ import { POLLING_INTERVAL } from './constants';
                     border
                     title={notification.type === 'success' ? " Success " : " Error "}
                 >
-                    <text fg={notification.type === 'success' ? 'green' : 'brightRed'}>
+                    <text fg={notification.type === 'success' ? 'brightGreen' : 'brightRed'}>
                         {notification.message}
                     </text>
                 </box>

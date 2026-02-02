@@ -11,13 +11,13 @@ export function StatusBar({ branch, branchCount, fileCount, searchActive = false
     return (
         <box height={1} flexDirection="row" justifyContent="space-between">
             <text>
-                <span fg="green">←→</span> Switch
+                <span fg="brightGreen">←→</span> Switch
                 {showFileOptions && (
                     <>
-                        {' '}| <span fg="green">⏎</span> Open | <span fg="green">S</span> Search | <span fg="green">R</span> Revert | <span fg="green">D</span> Delete
+                        {' '}| <span fg="brightGreen">⏎</span> Open | <span fg="brightGreen">S</span> Search | <span fg="brightGreen">R</span> Revert | <span fg="brightGreen">D</span> Delete
                     </>
                 )}
-                {' '}| <span fg="green">H</span> History | <span fg="green">Q</span> Quit
+                {' '}| <span fg="brightGreen">H</span> History | <span fg="brightGreen">Q</span> Quit
             </text>
             <text>
                 <span fg="cyan">Branch:</span> <span fg="yellow">{branch}</span> <span fg="gray">({branchCount})</span>

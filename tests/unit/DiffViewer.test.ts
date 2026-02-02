@@ -117,7 +117,7 @@ describe('DiffViewer', () => {
             let prefix = ' ';
             
             if (type === 'insert') { 
-                fg = 'green'; 
+                fg = 'brightGreen'; 
                 prefix = '+'; 
             } else if (type === 'delete') { 
                 fg = 'brightRed'; 
@@ -125,7 +125,7 @@ describe('DiffViewer', () => {
             }
             
             expect(['+', '-', ' ']).toContain(prefix);
-            expect(['white', 'green', 'brightRed']).toContain(fg);
+            expect(['white', 'brightGreen', 'brightRed']).toContain(fg);
         });
     });
 

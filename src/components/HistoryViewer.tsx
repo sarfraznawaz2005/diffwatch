@@ -107,7 +107,7 @@ export function HistoryViewer({ commits, onClose }: HistoryViewerProps) {
                             }}
                         >
                             <text width={10} fg="cyan">  {commit.hash}</text>
-                            <text width={25} fg={index === selectedRow ? "white" : "green"}>{commit.author.substring(0, 24)}</text>
+                            <text width={25} fg={index === selectedRow ? "white" : "brightGreen"}>{commit.author.substring(0, 24)}</text>
                             <text width={20} fg={index === selectedRow ? "white" : "yellow"}>{commit.date.substring(0, 19)}</text>
                             <text fg={index === selectedRow ? "white" : "white"} flexGrow={1}>{formatMessage(commit.message)}</text>
                         </box>
@@ -143,7 +143,7 @@ export function HistoryViewer({ commits, onClose }: HistoryViewerProps) {
                                 {fileDialogFiles.map((file, index) => (
                                     <box key={index} flexDirection="row" height={1}>
                                         <text width={8} fg={
-                                            file.status.charAt(0) === 'A' ? 'green' :  // Added
+                                            file.status.charAt(0) === 'A' ? 'brightGreen' :  // Added
                                             file.status.charAt(0) === 'D' ? 'red' :    // Deleted
                                             file.status.charAt(0) === 'R' ? 'yellow' : // Renamed
                                             file.status.charAt(0) === 'C' ? 'blue' :   // Copied

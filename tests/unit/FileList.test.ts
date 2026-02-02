@@ -58,7 +58,7 @@ describe('FileList Component Logic', () => {
     test('should map file statuses to correct colors', () => {
         const statusColorMap: Record<string, string> = {
             modified: 'yellow',
-            new: 'green',
+            new: 'brightGreen',
             deleted: 'brightRed',
             renamed: 'blue',
             unstaged: 'cyan',
@@ -68,7 +68,7 @@ describe('FileList Component Logic', () => {
         };
 
         expect(statusColorMap['modified']).toBe('yellow');
-        expect(statusColorMap['new']).toBe('green');
+        expect(statusColorMap['new']).toBe('brightGreen');
         expect(statusColorMap['deleted']).toBe('brightRed');
         expect(statusColorMap['renamed']).toBe('blue');
         expect(statusColorMap['unstaged']).toBe('cyan');
@@ -127,7 +127,7 @@ describe('FileList Component Logic', () => {
     test('should handle edge cases for file status mapping', () => {
         const statusColorMap: Record<string, string> = {
             modified: 'yellow',
-            new: 'green',
+            new: 'brightGreen',
             deleted: 'brightRed',
             renamed: 'blue',
             unstaged: 'cyan',

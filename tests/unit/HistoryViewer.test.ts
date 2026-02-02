@@ -73,13 +73,13 @@ describe('HistoryViewer Component Logic', () => {
     test('should apply correct colors to table elements', () => {
         const colors = {
             hash: 'cyan',
-            author: 'green',
+            author: 'brightGreen',
             date: 'yellow',
             message: 'white'
         };
 
         expect(colors.hash).toBe('cyan');
-        expect(colors.author).toBe('green');
+        expect(colors.author).toBe('brightGreen');
         expect(colors.date).toBe('yellow');
         expect(colors.message).toBe('white');
     });

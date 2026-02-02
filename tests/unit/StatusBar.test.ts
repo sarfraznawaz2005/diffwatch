@@ -56,12 +56,12 @@ describe('StatusBar', () => {
     test('should use correct colors for elements', () => {
         // Component should use these color mappings
         const expectedColors = {
-            shortcuts: 'green',
+            shortcuts: 'brightGreen',
             branchLabel: 'cyan', 
             branchValue: 'yellow'
         };
 
-        expect(expectedColors.shortcuts).toBe('green');
+        expect(expectedColors.shortcuts).toBe('brightGreen');
         expect(expectedColors.branchLabel).toBe('cyan');
         expect(expectedColors.branchValue).toBe('yellow');
     });
