@@ -199,7 +199,7 @@ const diffData = useMemo(() => {
                                     ) : (
                                         <text fg="gray" width={6}>      </text>
                                     )}
-                                    <text fg="green" flexGrow={1}>
+                                    <text fg="brightGreen" flexGrow={1}>
                                         {renderedParts}
                                     </text>
                                 </box>
@@ -218,7 +218,7 @@ const diffData = useMemo(() => {
                             {block.lines.map((line, lIdx) => {
                                 let fg = 'white';
                                 let prefix = ' ';
-                                if (line.type === 'insert') { fg = 'green'; prefix = '+'; }
+                                if (line.type === 'insert') { fg = 'brightGreen'; prefix = '+'; }
                                 else if (line.type === 'delete') { fg = 'brightRed'; prefix = '-'; }
 
                                 const ln = line.type === 'insert' ? line.newNumber : line.oldNumber;
