@@ -1,6 +1,6 @@
 {
   "name": "diffwatch",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A TUI app for watching git repository file changes with diffs.",
   "keywords": [
     "git",

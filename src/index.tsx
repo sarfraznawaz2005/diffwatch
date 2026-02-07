@@ -96,6 +96,9 @@ async function main() {
         process.exit(1);
     }
 
+    // Set terminal title
+    process.stdout.write(`\x1b]0;DiffWatch\x07`);
+
     const renderer = await createCliRenderer();
     const root = createRoot(renderer);
 
