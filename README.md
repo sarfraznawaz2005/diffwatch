@@ -119,3 +119,7 @@ bun run lint
 ## License
 
 [MIT](LICENSE)
+
+## GUI Alternative
+
+[Diffy](https://github.com/sarfraznawaz2005/diffy)
